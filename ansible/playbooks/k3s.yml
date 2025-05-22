@@ -1,3 +1,4 @@
+# Description: Create k3s cluster and install k8s addons
 ---
 - name: Create Kubernetes cluster
   hosts: all
@@ -5,7 +6,7 @@
     - setup
     - k3s
  
-- name: Install Kubernetes addons
+- name: Install k8s addons
   hosts: localhost
   roles:
     - cilium

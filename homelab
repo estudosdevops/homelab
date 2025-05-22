@@ -106,7 +106,7 @@ run_ansible() {
     local playbook_name=$1
     local mode=$2
     local inventory=$3
-    local playbook="${PLAYBOOKS_DIR}/${playbook_name}.yml"
+    local playbook="playbooks/${playbook_name}.yml"
     
     # Valida entradas
     validate_playbook "$playbook_name"
