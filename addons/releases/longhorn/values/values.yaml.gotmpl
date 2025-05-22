@@ -1,0 +1,20 @@
+---
+longhornUI:
+  replicas: 1
+
+csi:
+  attacherReplicaCount: 1
+  provisionerReplicaCount: 1
+  resizerReplicaCount: 1
+  snapshotterReplicaCount: 1
+
+persistence:
+  defaultClassReplicaCount: 1
+
+defaultSettings:
+  defaultReplicaCount: 1
+
+ingress:
+  enabled: true
+  ingressClassName: nginx
+  host: longhorn.homelab.tech

@@ -1,0 +1,24 @@
+---
+bases:
+  - "../../bases/helmDefaults.yaml"
+
+environments:
+  homelab:
+    kubeContext: default
+---
+repositories:
+  - name: ingress-nginx
+    url: https://kubernetes.github.io/ingress-nginx
+
+releases:
+  - name: ingress-nginx
+    namespace: ingress-nginx
+    chart: ingress-nginx/ingress-nginx
+    version: ~4.12.2
+    installed: true
+    labels:
+      tier:  ingress-nginx
+    values:
+      - values/values.yaml.gotmpl
+      # - values/{{ .Environment.Name }}.yaml.gotmpl
+    disableValidationOnInstall: true

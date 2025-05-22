@@ -1,0 +1,24 @@
+---
+bases:
+  - "../../bases/helmDefaults.yaml"
+
+environments:
+  homelab:
+    kubeContext: default
+---
+repositories:
+  - name: longhorn
+    url: https://charts.longhorn.io
+
+releases:
+  - name: longhorn
+    namespace: longhorn-system
+    chart: longhorn/longhorn
+    version: ~1.8.1
+    installed: true
+    labels:
+      tier: storage
+    values:
+      - values/values.yaml.gotmpl
+      # - values/{{ .Environment.Name }}.yaml.gotmpl
+    disableValidationOnInstall: true

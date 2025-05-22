@@ -1,0 +1,12 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: dns-debug
+  namespace: default
+spec:
+  containers:
+    - name: dns-tools
+      image: infoblox/dnstools
+      command: ["sleep", "3600"]
+  restartPolicy: Never

@@ -1,0 +1,64 @@
+---
+global:
+  domain: argocd.homelab.tech
+
+configs:
+  secret:
+    argocdServerAdminPassword: "$2a$12$QXEuerIhbTfkyUm2D3aame.Q3CkxWCCRONADC0rFEy2am1IgOkYwe"
+    extra:
+      accounts.fabio.password: "$2a$12$Is2nFwbT3vqlO7cn3quxWur/QUmmOkQ4lqDy39ADrk.HO6GwVEwTi"
+      accounts.gustavo.password: "$2a$12$dDSkCJfKBWOzfGncBwW05un7x51gRdbgZCvf67fi6qXGXObtnodjm"
+  
+  params:
+    server.insecure: true
+    controller.diff.server.side: true
+
+  rbac:
+    policy.csv: |
+      g, fabio, role:admin
+      g, gustavo, role:admin  
+    scopes: "[cognito:groups, email]"
+    policy.default: role:""
+  
+  cm:
+    url: http://argocd.homelab.tech
+    accounts.admin: apiKey
+    accounts.fabio: apiKey, login
+    accounts.gustavo: apiKey, login
+    users.anonymous.enabled: "false"
+    exec.enabled: "true"
+    resource.ignoreResourceUpdatesEnabled: true
+    resource.customizations.ignoreResourceUpdates.all: |
+      jsonPointers:
+        - /status
+    
+server:
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    
+  metrics:
+    enabled: false
+
+dex:
+  enabled: false
+
+controller:
+  metrics:
+    enabled: false
+
+repoServer:
+  metrics:
+    enabled: false
+
+applicationSet:
+  metrics:
+    enabled: false
+
+notifications:
+  metrics:
+    enabled: false
+
+redis:
+  metrics:
+    enabled: false

@@ -1,0 +1,11 @@
+---
+- name: Create Kubernetes cluster
+  hosts: all
+  roles:
+    - setup
+    - k3s
+ 
+- name: Install Kubernetes addons
+  hosts: localhost
+  roles:
+    - cilium

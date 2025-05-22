@@ -1,0 +1,33 @@
+---
+ingress:
+  enabled: true
+  ingressClassName: nginx
+  hosts:
+  - pihole.homelab.tech
+
+serviceWeb:
+  loadBalancerIP: 192.168.15.102
+  annotations:
+    metallb.universe.tf/allow-shared-ip: pihole-svc
+  type: ClusterIP
+
+adminPassword: "my!admin3password"
+
+serviceDns:
+  loadBalancerIP: 192.168.15.102
+  annotations:
+    metallb.universe.tf/allow-shared-ip: pihole-svc
+  type: LoadBalancer
+
+persistentVolumeClaim:
+  enabled: true
+
+serviceDhcp:
+  enabled: false
+
+podDnsConfig:
+  enabled: false
+
+dnsmasq:
+  customDnsEntries:
+  - address=/homelab.tech/192.168.15.101

@@ -1,0 +1,172 @@
+#!/usr/bin/env bash
+# Description: Gerencia playbooks ansible
+
+# shellcheck disable=SC1091
+source "scripts/lib/common.sh"
+
+# Constants
+readonly ANSIBLE_DIR="ansible"
+readonly PLAYBOOKS_DIR="${ANSIBLE_DIR}/playbooks"
+readonly INVENTORIES_DIR="${ANSIBLE_DIR}/inventories"
+readonly DEFAULT_INVENTORY="k3s"
+
+# Função para verificar dependências necessárias
+check_ansible_deps() {
+    check_dependency "ansible"
+}
+
+# Função para exibir menu de ajuda
+show_help() {
+    echo "Uso: $0 [OPÇÕES] <nome_playbook> <ação> [inventário]"
+    echo
+    echo "Opções:"
+    echo "  -h, --help     Mostra esta mensagem de ajuda"
+    echo "  list          Lista todos os playbooks disponíveis"
+    echo
+    echo "Argumentos:"
+    echo "  nome_playbook  Nome do playbook a ser executado (sem extensão .yml)"
+    echo "  ação          Ação a ser executada: check ou create"
+    echo "  inventário    (Opcional) Arquivo de inventário a ser usado (padrão: k3s)"
+    echo
+    echo "Exemplos:"
+    echo "  $0 list                    # Lista todos os playbooks disponíveis"
+    echo "  $0 nome_playbook check     # Executa playbook em modo check com inventário padrão"
+    echo "  $0 nome_playbook create    # Executa playbook em modo create com inventário padrão"
+    echo "  $0 nome_playbook check inventario_personalizado    # Executa playbook em modo check com inventário personalizado"
+    echo
+    echo "Nota: Todos os playbooks devem estar em ${PLAYBOOKS_DIR}/"
+    echo "      Todos os arquivos de inventário devem estar em ${INVENTORIES_DIR}/"
+}
+
+# Função para listar playbooks disponíveis
+list_playbooks() {
+    log_info "Procurando playbooks em ${PLAYBOOKS_DIR}..."
+    
+    if [ ! -d "$PLAYBOOKS_DIR" ]; then
+        log_error "Diretório de playbooks não encontrado em ${PLAYBOOKS_DIR}"
+        exit 1
+    fi
+
+    # Conta total de playbooks
+    local total_playbooks
+    total_playbooks=$(find "$PLAYBOOKS_DIR" -maxdepth 1 -name "*.yml" | wc -l)
+    
+    if [ "$total_playbooks" -eq 0 ]; then
+        log_warn "Nenhum playbook encontrado em ${PLAYBOOKS_DIR}"
+        exit 1
+    fi
+
+    log_info "Encontrado(s) $total_playbooks playbook(s):"
+    echo "----------------------------------------"
+    
+    # Lista todos os playbooks com suas descrições
+    for playbook in "$PLAYBOOKS_DIR"/*.yml; do
+        if [ -f "$playbook" ]; then
+            local playbook_name
+            local description
+            playbook_name=$(basename "$playbook" .yml)
+            description=$(grep -m 1 "^# Description:" "$playbook" | cut -d':' -f2- | sed 's/^[[:space:]]*//')
+            
+            if [ -n "$description" ]; then
+                echo -e "${GREEN}${playbook_name}${NC}: ${description}"
+            else
+                echo -e "${GREEN}${playbook_name}${NC}"
+            fi
+        fi
+    done
+    echo "----------------------------------------"
+}
+
+# Função para validar existência do playbook
+validate_playbook() {
+    local playbook_name=$1
+    local playbook="${PLAYBOOKS_DIR}/${playbook_name}.yml"
+    
+    if [ ! -f "$playbook" ]; then
+        log_error "Playbook não encontrado em ${playbook}"
+        log_info "Playbooks disponíveis:"
+        list_playbooks
+        exit 1
+    fi
+}
+
+# Função para validar existência do inventário
+validate_inventory() {
+    local inventory=$1
+    local inventory_file="${INVENTORIES_DIR}/${inventory}.yml"
+    
+    if [ ! -f "$inventory_file" ]; then
+        log_error "Inventário não encontrado em ${inventory_file}"
+        exit 1
+    fi
+}
+
+# Função para executar playbook ansible
+run_ansible() {
+    local playbook_name=$1
+    local mode=$2
+    local inventory=$3
+    local playbook="${PLAYBOOKS_DIR}/${playbook_name}.yml"
+    
+    # Valida entradas
+    validate_playbook "$playbook_name"
+    validate_inventory "$inventory"
+
+    # Muda para diretório ansible e executa playbook
+    cd "$ANSIBLE_DIR" || exit 1
+
+    case "$mode" in
+        "check")
+            log_info "Executando playbook em modo check: ${playbook_name}"
+            ansible-playbook -i "inventories/${inventory}.yml" "$playbook" --check
+            ;;
+        "create")
+            log_info "Executando playbook em modo create: ${playbook_name}"
+            ansible-playbook -i "inventories/${inventory}.yml" "$playbook"
+            ;;
+        *)
+            log_error "Modo inválido. Use 'check' ou 'create'"
+            cd - > /dev/null || exit 1
+            exit 1
+            ;;
+    esac
+
+    # Retorna ao diretório original
+    cd - > /dev/null || exit 1
+}
+
+# Lógica principal do script
+main() {
+    check_ansible_deps
+
+    # Trata flag de ajuda
+    if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+        show_help
+        exit 0
+    fi
+
+    if [ $# -lt 1 ]; then
+        show_help
+        exit 1
+    fi
+
+    local playbook_name=$1
+    local action=$2
+    local inventory=${3:-$DEFAULT_INVENTORY}
+
+    if [ "$playbook_name" = "list" ]; then
+        list_playbooks
+        exit 0
+    fi
+
+    if [ -z "$action" ]; then
+        log_error "Ação é obrigatória. Use 'check' ou 'create'"
+        show_help
+        exit 1
+    fi
+
+    run_ansible "$playbook_name" "$action" "$inventory"
+}
+
+# Executa função principal com todos os argumentos
+main "$@"

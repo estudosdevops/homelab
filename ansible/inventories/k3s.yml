@@ -1,0 +1,11 @@
+---
+all:
+  vars:
+    control_plane_endpoint: 192.168.15.105
+    load_balancer_ip_pool:
+      - 192.168.15.101
+k3s:
+  children:
+    masters:
+      hosts:
+        server0: {ansible_host: 192.168.15.105, ansible_user: ubuntu, ansible_become: true}

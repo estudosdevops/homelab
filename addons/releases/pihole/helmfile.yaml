@@ -1,0 +1,24 @@
+---
+bases:
+  - "../../bases/helmDefaults.yaml"
+
+environments:
+  homelab:
+    kubeContext: default
+---
+repositories:
+  - name: mojo2600
+    url: https://mojo2600.github.io/pihole-kubernetes/
+
+releases:
+  - name: pihole
+    namespace: pihole-system
+    chart: mojo2600/pihole
+    version: ~2.30.0
+    installed: true
+    labels:
+      tier: dns
+    values:
+      - values/values.yaml.gotmpl
+      # - values/{{ .Environment.Name }}.yaml.gotmpl
+    disableValidationOnInstall: true

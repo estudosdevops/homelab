@@ -1,0 +1,24 @@
+---
+bases:
+  - "../../bases/helmDefaults.yaml"
+
+environments:
+  homelab:
+    kubeContext: default
+---
+repositories:
+  - name: cilium
+    url: https://helm.cilium.io
+
+releases:
+  - name: cilium
+    namespace: kube-system
+    chart: cilium/cilium
+    version: ~1.17.3
+    installed: true
+    labels:
+      tier:  cilium
+    values:
+      - values/values.yaml.gotmpl
+      # - values/{{ .Environment.Name }}.yaml.gotmpl
+    disableValidationOnInstall: true

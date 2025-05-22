@@ -1,0 +1,24 @@
+---
+bases:
+  - "../../bases/helmDefaults.yaml"
+
+environments:
+  homelab:
+    kubeContext: default
+---
+repositories:
+  - name: argo
+    url: https://argoproj.github.io/argo-helm
+
+releases:
+  - name: argocd
+    namespace: argocd
+    chart: argo/argo-cd
+    version: ~8.0.0
+    installed: true
+    labels:
+      tier: deploy
+    values:
+      - values/values.yaml.gotmpl
+      # - values/{{ .Environment.Name }}.yaml.gotmpl
+    disableValidationOnInstall: true
