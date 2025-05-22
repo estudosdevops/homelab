@@ -1,17 +1,25 @@
-# Homelab Infrastructure
+# Homelab K3s
 
-Este repositório contém a infraestrutura como código (IaC) e configurações para meu homelab.
+Este repositório contém a infraestrutura como código (IaC) e configurações para um homelab baseado em K3s, uma distribuição Kubernetes leve e otimizada para ambientes edge computing e IoT.
 
-### Hardware
+## Sobre o K3s
 
-#### Control Plane (Master)
+K3s é uma distribuição Kubernetes certificada pela CNCF, projetada para ser:
+- Leve e eficiente
+- Fácil de instalar e manter
+- Ideal para ambientes com recursos limitados
+- Perfeito para homelabs e ambientes de desenvolvimento
+
+## Hardware
+
+### Control Plane (Master)
 - **Modelo**: Dell OptiPlex 3070
 - **CPU**: Intel Core i5
 - **Memória**: 16GB RAM
 - **Armazenamento**: SSD 120GB
 - **Sistema Operacional**: Ubuntu Server 22.04 LTS
 
-#### Worker Node
+### Worker Node
 - **Modelo**: Lenovo Mini PC
 - **CPU**: Intel Core i5
 - **Memória**: 16GB RAM
