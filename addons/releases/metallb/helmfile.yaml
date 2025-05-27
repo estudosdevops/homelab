@@ -1,20 +1,17 @@
 ---
 bases:
   - "../../bases/helmDefaults.yaml"
-
-environments:
-  homelab:
-    kubeContext: default
+  
 ---
 repositories:
-  - name: bitnami
-    url: https://charts.bitnami.com/bitnami
+  - name: metallb
+    url: https://metallb.github.io/metallb
 
 releases:
   - name: metallb
     namespace: metallb-system
-    chart: bitnami/metallb
-    version: ~6.4.10
+    chart: metallb/metallb
+    version: ~0.14.9
     installed: true
     labels:
       tier: metallb
@@ -25,5 +22,4 @@ releases:
         command: kubectl apply -f ./manifests/ip-address-pool.yml
     values:
       - values/values.yaml.gotmpl
-      # - values/{{ .Environment.Name }}.yaml.gotmpl
     disableValidationOnInstall: true

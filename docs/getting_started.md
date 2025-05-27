@@ -46,13 +46,16 @@ O projeto inclui um CLI (Command Line Interface) para facilitar a execução dos
 3. Executar playbooks:
    ```bash
    # Modo check (dry-run)
-   ./homelab nome_playbook check
+   ./homelab check nome_playbook
 
    # Modo create
-   ./homelab nome_playbook create
+   ./homelab create nome_playbook
 
    # Com inventário personalizado
-   ./homelab nome_playbook check inventario_personalizado
+   ./homelab check nome_playbook inventario_personalizado
+
+   # Com variáveis extras
+   ./homelab create nome_playbook k3s --extra-vars 'var1=value1 var2=value2'
    ```
 
 ## Configuração Inicial
@@ -68,8 +71,8 @@ O projeto inclui um CLI (Command Line Interface) para facilitar a execução dos
 
 3. Execute o playbook inicial usando o CLI:
    ```bash
-   ./homelab setup check
-   ./homelab setup create
+   ./homelab check setup
+   ./homelab create setup
    ```
 
 ## Estrutura de Diretórios
