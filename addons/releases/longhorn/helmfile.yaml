@@ -2,9 +2,6 @@
 bases:
   - "../../bases/helmDefaults.yaml"
 
-environments:
-  homelab:
-    kubeContext: default
 ---
 repositories:
   - name: longhorn
@@ -20,5 +17,4 @@ releases:
       tier: storage
     values:
       - values/values.yaml.gotmpl
-      # - values/{{ .Environment.Name }}.yaml.gotmpl
     disableValidationOnInstall: true
