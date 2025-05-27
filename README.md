@@ -89,13 +89,16 @@ O projeto inclui um CLI (Command Line Interface) para facilitar a execução dos
 ./homelab list
 
 # Executar um playbook em modo check (dry-run)
-./homelab nome_playbook check
+./homelab check nome_playbook
 
 # Executar um playbook em modo create
-./homelab nome_playbook create
+./homelab create nome_playbook
 
 # Executar um playbook com inventário personalizado
-./homelab nome_playbook check inventario_personalizado
+./homelab check nome_playbook inventario_personalizado
+
+# Executar um playbook com variáveis extras
+./homelab create nome_playbook k3s --extra-vars 'var1=value1 var2=value2'
 ```
 
 ### Opções Disponíveis
@@ -104,6 +107,7 @@ O projeto inclui um CLI (Command Line Interface) para facilitar a execução dos
 - `list`: Lista todos os playbooks disponíveis
 - `check`: Executa o playbook em modo check (dry-run)
 - `create`: Executa o playbook em modo create
+- `--extra-vars`: Permite passar variáveis extras para o playbook
 
 ## Como Usar
 
@@ -112,8 +116,8 @@ O projeto inclui um CLI (Command Line Interface) para facilitar a execução dos
 3. Use o CLI homelab para executar os playbooks:
    ```bash
    # Exemplo: Executar o playbook k3s
-   ./homelab k3s check
-   ./homelab k3s create
+   ./homelab check k3s
+   ./homelab create k3s
    ```
 
 ## Manutenção
