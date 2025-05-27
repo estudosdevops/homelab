@@ -11,5 +11,3 @@
   gather_facts: false
   roles:
     - addons
-
-  
