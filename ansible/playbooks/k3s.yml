@@ -8,5 +8,8 @@
  
 - name: Install k8s addons
   hosts: localhost
+  gather_facts: false
   roles:
-    - cilium
+    - addons
+
+  

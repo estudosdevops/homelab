@@ -44,14 +44,14 @@ show_help() {
     echo "Uso: $0 [release] [--auto-apply]"
     echo
     echo "Argumentos:"
-    echo "  release       (Opcional) Nome da release específica para processar"
+    echo "  release       (Opcional) Nome da release específica para instalar ou atualizar"
     echo "  --auto-apply  (Opcional) Aplica mudanças automaticamente sem pedir confirmação"
     echo
     echo "Exemplos:"
-    echo "  $0              # Processa todas as releases"
-    echo "  $0 argocd       # Processa apenas a release argocd"
-    echo "  $0 --auto-apply # Processa todas as releases sem pedir confirmação"
-    echo "  $0 argocd --auto-apply # Processa apenas a release argocd sem pedir confirmação"
+    echo "  $0              # Instalar ou Atualizar todas as releases"
+    echo "  $0 release-name       # Instalar ou Atualizar uma release especifica (exemplo: argocd)"
+    echo "  $0 --auto-apply # Instalar ou Atualizar todas releases sem pedir confirmação (opcional)"
+    echo "  $0 argocd --auto-apply # Instalar ou Atualizar uma release especifica sem pedir confirmação (opcional)"
 }
 
 # =============================================================================
@@ -164,7 +164,7 @@ process_release() {
     [[ "$release_dir" != */ ]] && release_dir="${release_dir}/"
     local helmfile_path="${release_dir}helmfile.yaml"
     
-    log_info "Processando release: $release_name"
+    log_info "Instalando ou Atualizando release: $release_name"
     
     if [ ! -f "$helmfile_path" ]; then
         log_warn "Arquivo helmfile.yaml não encontrado em: $release_dir"

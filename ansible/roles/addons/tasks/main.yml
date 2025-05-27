@@ -1,0 +1,38 @@
+---
+- name: Check if helmfile-releases script exists
+  ansible.builtin.stat:
+    path: "{{ playbook_dir }}/../../scripts/helmfile-releases.sh"
+  register: helmfile_script
+  delegate_to: localhost
+
+- name: Fail if script is not found
+  ansible.builtin.fail:
+    msg: "Script helmfile-releases.sh not found in {{ playbook_dir }}/../../scripts/"
+  when: not helmfile_script.stat.exists
+  delegate_to: localhost
+
+- name: Make script executable
+  ansible.builtin.file:
+    path: "{{ playbook_dir }}/../../scripts/helmfile-releases.sh"
+    mode: "0755"
+  delegate_to: localhost
+
+- name: Install or update all releases
+  ansible.builtin.command:
+    cmd: "{{ playbook_dir }}/../../scripts/helmfile-releases.sh --auto-apply"
+    chdir: "{{ playbook_dir }}/../.."
+  register: helmfile_result
+  delegate_to: localhost
+  changed_when: helmfile_result.rc == 0
+  failed_when: helmfile_result.rc != 0
+  when: release_name is not defined
+
+- name: Install or update {{ release_name }}
+  ansible.builtin.command:
+    cmd: "{{ playbook_dir }}/../../scripts/helmfile-releases.sh --auto-apply --release {{ release_name }}"
+    chdir: "{{ playbook_dir }}/../.."
+  register: helmfile_single_result
+  delegate_to: localhost
+  changed_when: helmfile_single_result.rc == 0
+  failed_when: helmfile_single_result.rc != 0
+  when: release_name is defined
