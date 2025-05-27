@@ -1,0 +1,13 @@
+---
+- name: restart coredns
+  kubernetes.core.k8s:
+    kind: Deployment
+    namespace: kube-system
+    name: coredns
+    state: present
+    definition:
+      spec:
+        template:
+          metadata:
+            annotations:
+              coredns-reload-trigger: "{{ lookup('pipe', 'date +%s') }}" 

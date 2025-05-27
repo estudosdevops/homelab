@@ -87,34 +87,59 @@
   delegate_to: localhost
   run_once: true
 
-# - name: Create custom ConfigMap for CoreDNS
-#   kubernetes.core.k8s:
-#     state: present
-#     definition:
-#       apiVersion: v1
-#       kind: ConfigMap
-#       metadata:
-#         name: coredns-custom
-#         namespace: kube-system
-#       data:
-#         custom.server: |
-#           {{ domain }}:53 {
-#               errors
-#               cache 30
-#               forward . {{ pihole_ip }}
-#             }
-#   notify: Restart CoreDNS deployment
+- name: Create kubeconfig symbolic link in project root
+  ansible.builtin.file:
+    src: "{{ playbook_dir }}/kubeconfig.yaml"
+    dest: "{{ playbook_dir }}/../kubeconfig.yaml"
+    state: link
+    force: yes
+  delegate_to: localhost
+  run_once: true
 
-#   handlers:
-#     - name: Restart CoreDNS deployment
-#       kubernetes.core.k8s:
-#         kind: Deployment
-#         namespace: kube-system
-#         name: coredns
-#         state: present
-#         definition:
-#           spec:
-#             template:
-#               metadata:
-#                 annotations:
-#                   coredns-reload-trigger: "{{ lookup('pipe', 'date +%s') }}"
+- name: Check if Kubernetes cluster is ready
+  kubernetes.core.k8s_info:
+    kind: Node
+  register: k8s_nodes
+  until: k8s_nodes.resources | length > 0
+  retries: 30
+  delay: 10
+  delegate_to: localhost
+
+- name: Verify all nodes are in Ready state
+  kubernetes.core.k8s_info:
+    kind: Node
+  register: k8s_nodes
+  delegate_to: localhost
+  failed_when: k8s_nodes.resources | selectattr('status.conditions', 'defined') | selectattr('status.conditions', 'search', 'type=Ready') | selectattr('status.conditions', 'search', 'status=True') | list | length != k8s_nodes.resources | length
+
+- name: Wait for core components to be ready
+  kubernetes.core.k8s_info:
+    kind: Pod
+    namespace: kube-system
+    label_selectors:
+      - k8s-app in (kube-apiserver, kube-controller-manager, kube-scheduler, kube-proxy, kube-dns)
+  register: core_pods
+  until: core_pods.resources | selectattr('status.phase', 'equalto', 'Running') | list | length == core_pods.resources | length
+  retries: 30
+  delay: 10
+  delegate_to: localhost
+
+- name: Create custom ConfigMap for CoreDNS
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: coredns-custom
+        namespace: kube-system
+      data:
+        custom.server: |
+          {{ domain }}:53 {
+            errors
+            cache 30
+            forward . {{ pihole_ip }} {
+              policy sequential
+            }
+          }
+  notify: restart coredns
