@@ -9,3 +9,6 @@ k3s:
     masters:
       hosts:
         server0: {ansible_host: 192.168.15.105, ansible_user: ubuntu, ansible_become: true}
+    workers:
+      hosts:
+        worker0: {ansible_host: 192.168.15.106, ansible_user: ubuntu, ansible_become: true}
