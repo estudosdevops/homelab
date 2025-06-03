@@ -1,7 +1,7 @@
 ---
 bases:
   - "../../bases/helmDefaults.yaml"
-  
+
 ---
 repositories:
   - name: metallb
@@ -19,7 +19,7 @@ releases:
       - events:
           - postsync
         showlogs: true
-        command: kubectl apply -f ./manifests/ip-address-pool.yml
+        command: kubectl apply -f ./addons/releases/metallb/manifests/ip-address-pool.yml
     values:
       - values/values.yaml.gotmpl
     disableValidationOnInstall: true

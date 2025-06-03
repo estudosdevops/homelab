@@ -10,49 +10,70 @@ readonly PLAYBOOKS_DIR="${ANSIBLE_DIR}/playbooks"
 readonly INVENTORIES_DIR="${ANSIBLE_DIR}/inventories"
 readonly DEFAULT_INVENTORY="k3s"
 
-# Função para verificar dependências necessárias
+# Logging functions
+log_playbook_info() {
+    local playbook_name=$1
+    local mode=$2
+    log_info "Executando playbook em modo ${mode}: ${playbook_name}"
+}
+
+log_error_and_exit() {
+    local message=$1
+    local exit_code=${2:-1}
+    log_error "$message"
+    exit "$exit_code"
+}
+
+# Validation functions
+validate_required_args() {
+    local playbook_name=$1
+    local action=$2
+
+    if [ -z "$playbook_name" ]; then
+        log_error_and_exit "Nome do playbook é obrigatório"
+    fi
+
+    if [ "$action" != "check" ] && [ "$action" != "create" ]; then
+        log_error_and_exit "Ação inválida. Use 'check' ou 'create'"
+    fi
+}
+
+validate_playbook() {
+    local playbook_name=$1
+    local playbook="${PLAYBOOKS_DIR}/${playbook_name}.yml"
+
+    if [ ! -f "$playbook" ]; then
+        log_error "Playbook não encontrado em ${playbook}"
+        log_info "Playbooks disponíveis:"
+        list_playbooks
+        exit 1
+    fi
+}
+
+validate_inventory() {
+    local inventory=$1
+    local inventory_file="${INVENTORIES_DIR}/${inventory}.yml"
+
+    if [ ! -f "$inventory_file" ]; then
+        log_error_and_exit "Inventário não encontrado em ${inventory_file}"
+    fi
+}
+
+# Core functions
 check_ansible_deps() {
     check_dependency "ansible"
 }
 
-# Função para exibir menu de ajuda
-show_help() {
-    echo "Uso: $0 [OPÇÕES] <ação> <nome_playbook> [inventário] [--extra-vars 'var1=value1 var2=value2']"
-    echo
-    echo "Opções:"
-    echo "  -h, --help     Mostra esta mensagem de ajuda"
-    echo "  list          Lista todos os playbooks disponíveis"
-    echo
-    echo "Argumentos:"
-    echo "  ação          Ação a ser executada: check ou create"
-    echo "  nome_playbook  Nome do playbook a ser executado (sem extensão .yml)"
-    echo "  inventário    (Opcional) Arquivo de inventário a ser usado (padrão: k3s)"
-    echo "  --extra-vars  (Opcional) Variáveis extras para o playbook no formato 'var1=value1 var2=value2'"
-    echo
-    echo "Exemplos:"
-    echo "  $0 list                    # Lista todos os playbooks disponíveis"
-    echo "  $0 check nome_playbook     # Executa playbook em modo check com inventário padrão"
-    echo "  $0 create nome_playbook    # Executa playbook em modo create com inventário padrão"
-    echo "  $0 check nome_playbook k3s    # Executa playbook em modo check com inventário personalizado"
-    echo "  $0 create nome_playbook k3s --extra-vars 'var1=value1 var2=value2'    # Executa playbook com variáveis extras"
-    echo
-    echo "Nota: Todos os playbooks devem estar em ${PLAYBOOKS_DIR}/"
-    echo "      Todos os arquivos de inventário devem estar em ${INVENTORIES_DIR}/"
-}
-
-# Função para listar playbooks disponíveis
 list_playbooks() {
     log_info "Procurando playbooks em ${PLAYBOOKS_DIR}..."
-    
+
     if [ ! -d "$PLAYBOOKS_DIR" ]; then
-        log_error "Diretório de playbooks não encontrado em ${PLAYBOOKS_DIR}"
-        exit 1
+        log_error_and_exit "Diretório de playbooks não encontrado em ${PLAYBOOKS_DIR}"
     fi
 
-    # Conta total de playbooks
     local total_playbooks
     total_playbooks=$(find "$PLAYBOOKS_DIR" -maxdepth 1 -name "*.yml" | wc -l)
-    
+
     if [ "$total_playbooks" -eq 0 ]; then
         log_warn "Nenhum playbook encontrado em ${PLAYBOOKS_DIR}"
         exit 1
@@ -60,15 +81,14 @@ list_playbooks() {
 
     log_info "Encontrado(s) $total_playbooks playbook(s):"
     echo "----------------------------------------"
-    
-    # Lista todos os playbooks com suas descrições
+
     for playbook in "$PLAYBOOKS_DIR"/*.yml; do
         if [ -f "$playbook" ]; then
             local playbook_name
             local description
             playbook_name=$(basename "$playbook" .yml)
             description=$(grep -m 1 "^# Description:" "$playbook" | cut -d':' -f2- | sed 's/^[[:space:]]*//')
-            
+
             if [ -n "$description" ]; then
                 echo -e "${GREEN}${playbook_name}${NC}: ${description}"
             else
@@ -79,78 +99,101 @@ list_playbooks() {
     echo "----------------------------------------"
 }
 
-# Função para validar existência do playbook
-validate_playbook() {
-    local playbook_name=$1
-    local playbook="${PLAYBOOKS_DIR}/${playbook_name}.yml"
-    
-    if [ ! -f "$playbook" ]; then
-        log_error "Playbook não encontrado em ${playbook}"
-        log_info "Playbooks disponíveis:"
-        list_playbooks
-        exit 1
-    fi
-}
-
-# Função para validar existência do inventário
-validate_inventory() {
-    local inventory=$1
-    local inventory_file="${INVENTORIES_DIR}/${inventory}.yml"
-    
-    if [ ! -f "$inventory_file" ]; then
-        log_error "Inventário não encontrado em ${inventory_file}"
-        exit 1
-    fi
-}
-
-# Função para executar playbook ansible
 run_ansible() {
     local playbook_name=$1
     local mode=$2
     local inventory=$3
-    local extra_vars=$4
+    shift 3
+    local ansible_opts=("$@")
     local playbook="playbooks/${playbook_name}.yml"
-    
-    # Valida entradas
+
+    # Validate inputs
     validate_playbook "$playbook_name"
     validate_inventory "$inventory"
 
-    # Muda para diretório ansible e executa playbook
+    # Change to ansible directory
     cd "$ANSIBLE_DIR" || exit 1
 
-    # Prepara comando base
+    # Build ansible command
     local ansible_cmd="ansible-playbook -i \"inventories/${inventory}.yml\" \"$playbook\""
-    
-    # Adiciona extra-vars se fornecido
-    if [ -n "$extra_vars" ]; then
-        ansible_cmd="${ansible_cmd} --extra-vars \"$extra_vars\""
+
+    # Add ansible options if provided
+    if [ ${#ansible_opts[@]} -gt 0 ]; then
+        ansible_cmd="${ansible_cmd} ${ansible_opts[*]}"
     fi
 
+    # Execute command based on mode
+    log_playbook_info "$playbook_name" "$mode"
     case "$mode" in
         "check")
-            log_info "Executando playbook em modo check: ${playbook_name}"
             eval "${ansible_cmd} --check"
             ;;
         "create")
-            log_info "Executando playbook em modo create: ${playbook_name}"
             eval "${ansible_cmd}"
             ;;
         *)
-            log_error "Modo inválido. Use 'check' ou 'create'"
-            cd - > /dev/null || exit 1
-            exit 1
+            log_error_and_exit "Modo inválido. Use 'check' ou 'create'"
             ;;
     esac
 
-    # Retorna ao diretório original
+    # Return to original directory
     cd - > /dev/null || exit 1
 }
 
-# Lógica principal do script
+process_ansible_opts() {
+    local ansible_opts=()
+    local inventory=$DEFAULT_INVENTORY
+
+    while [ $# -gt 0 ]; do
+        if [[ $1 == -* ]]; then
+            ansible_opts+=("$1")
+            # Handle options that require values
+            if [[ $1 == --* && $1 != --check && $1 != --diff && $1 != --force-handlers && $1 != --flush-cache && $1 != --list-hosts && $1 != --list-tags && $1 != --list-tasks && $1 != --syntax-check ]]; then
+                if [ -n "$2" ]; then
+                    ansible_opts+=("$2")
+                    shift
+                fi
+            fi
+        else
+            inventory=$1
+        fi
+        shift
+    done
+
+    echo "$inventory"
+    printf '%s\n' "${ansible_opts[@]}"
+}
+
+show_help() {
+    cat << EOF
+Uso: $0 [OPÇÕES] <ação> <nome_playbook> [ansible_opções]
+
+Opções:
+  -h, --help     Mostra esta mensagem de ajuda
+  list          Lista todos os playbooks disponíveis
+
+Argumentos:
+  ação          Ação a ser executada: check ou create
+  nome_playbook  Nome do playbook a ser executado (sem extensão .yml)
+  ansible_opções (Opcional) Qualquer opção válida do ansible-playbook
+
+Exemplos:
+  $0 list                    # Lista todos os playbooks disponíveis
+  $0 check k3s              # Executa playbook k3s em modo check
+  $0 create k3s             # Executa playbook k3s em modo create
+  $0 create k3s --extra-vars 'var1=value1 var2=value2'    # Executa playbook com variáveis extras
+  $0 create k3s -k -K       # Executa playbook solicitando senhas SSH e sudo
+  $0 create k3s --tags 'tag1,tag2'    # Executa playbook apenas com tags específicas
+
+Nota: Todos os playbooks devem estar em ${PLAYBOOKS_DIR}/
+      Todos os arquivos de inventário devem estar em ${INVENTORIES_DIR}/
+EOF
+}
+
 main() {
     check_ansible_deps
 
-    # Trata flag de ajuda
+    # Handle help flag
     if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
         show_help
         exit 0
@@ -163,50 +206,26 @@ main() {
 
     local action=$1
     local playbook_name=$2
-    local inventory=$DEFAULT_INVENTORY
-    local extra_vars=""
 
-    # Processa argumentos adicionais
+    # Process remaining arguments
     shift 2
-    while [ $# -gt 0 ]; do
-        case "$1" in
-            "--extra-vars")
-                if [ -n "$2" ]; then
-                    extra_vars=$2
-                    shift 2
-                else
-                    log_error "Valor não fornecido para --extra-vars"
-                    show_help
-                    exit 1
-                fi
-                ;;
-            *)
-                # Se não for --extra-vars, assume que é o inventário
-                inventory=$1
-                shift
-                ;;
-        esac
-    done
+    local processed_args
+    processed_args=($(process_ansible_opts "$@"))
+    local inventory=${processed_args[0]}
+    local ansible_opts=("${processed_args[@]:1}")
 
+    # Handle list action
     if [ "$action" = "list" ]; then
         list_playbooks
         exit 0
     fi
 
-    if [ -z "$playbook_name" ]; then
-        log_error "Nome do playbook é obrigatório"
-        show_help
-        exit 1
-    fi
+    # Validate required arguments
+    validate_required_args "$playbook_name" "$action"
 
-    if [ "$action" != "check" ] && [ "$action" != "create" ]; then
-        log_error "Ação inválida. Use 'check' ou 'create'"
-        show_help
-        exit 1
-    fi
-
-    run_ansible "$playbook_name" "$action" "$inventory" "$extra_vars"
+    # Run ansible playbook
+    run_ansible "$playbook_name" "$action" "$inventory" "${ansible_opts[@]}"
 }
 
-# Executa função principal com todos os argumentos
+# Execute main function with all arguments
 main "$@"

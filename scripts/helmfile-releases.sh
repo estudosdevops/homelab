@@ -62,30 +62,28 @@ show_help() {
 check_changes() {
     local release_dir=$1
     local output
-    
+
     [[ "$release_dir" != */ ]] && release_dir="${release_dir}/"
-    
+
     cd "$release_dir" || return 1
-    
+
     output=$(helmfile --kubeconfig "$KUBECONFIG_FILE" --color diff 2>&1)
     local diff_status=$?
-    
+
     echo -e "$output"
-    
+
     cd - > /dev/null || exit 1
-    
-    # Verifica se há mudanças no output
-    if echo "$output" | grep -q "^[+-]" || \
-       echo "$output" | grep -q "helm.sh/chart:" || \
-       echo "$output" | grep -q "alteração detectada:"; then
+
+    # Verifica se há mudanças no output usando um único regex
+    if echo "$output" | grep -qE '^[+-]|helm\.sh/chart:|alteração detectada:|image:|sha256:|version:'; then
         return 0
     fi
-    
+
     # Se não encontrou mudanças no output, verifica o status do comando
     if [ $diff_status -eq 2 ]; then
         return 0
     fi
-    
+
     # Se chegou aqui, não há mudanças
     return 1
 }
@@ -97,20 +95,20 @@ run_helmfile() {
     local output
 
     [[ "$release_dir" != */ ]] && release_dir="${release_dir}/"
-    
+
     if [ ! -d "$release_dir" ]; then
         log_error "Diretório não existe: $release_dir"
         return 1
     fi
-    
+
     local current_dir
     current_dir=$(pwd)
-    
+
     if ! cd "$release_dir"; then
         log_error "Erro ao mudar para o diretório $release_dir"
         return 1
     fi
-    
+
     # Executa o comando helmfile
     if [ "$command" = "diff" ]; then
         output=$(helmfile --kubeconfig "$KUBECONFIG_FILE" --color diff --detailed-exitcode 2>&1)
@@ -118,19 +116,19 @@ run_helmfile() {
         output=$(helmfile --kubeconfig "$KUBECONFIG_FILE" --color "$command" 2>&1)
     fi
     local status=$?
-    
+
     echo -e "$output"
-    
+
     cd "$current_dir" || {
         log_error "Erro ao voltar para o diretório original"
         return 1
     }
-    
+
     if [ $status -ne 0 ] && [ $status -ne 2 ]; then
         log_error "Erro ao executar helmfile $command (status: $status)"
         return 1
     fi
-    
+
     return 0
 }
 
@@ -139,11 +137,11 @@ confirm_action() {
     local message=$1
     local auto_apply=${2:-false}
     local response
-    
+
     if [ "$auto_apply" = "true" ]; then
         return 0
     fi
-    
+
     while true; do
         read -r -p "$message [N/s]: " response
         case "$response" in
@@ -160,38 +158,44 @@ process_release() {
     local auto_apply=${2:-false}
     local release_name
     release_name=$(basename "$release_dir")
-    
+
     [[ "$release_dir" != */ ]] && release_dir="${release_dir}/"
     local helmfile_path="${release_dir}helmfile.yaml"
-    
-    log_info "Instalando ou Atualizando release: $release_name"
-    
+
+    log_info "==============================================="
+    log_info "Processando release: $release_name"
+    log_info "==============================================="
+
     if [ ! -f "$helmfile_path" ]; then
-        log_warn "Arquivo helmfile.yaml não encontrado em: $release_dir"
+        log_error "Release $release_name: Arquivo helmfile.yaml não encontrado"
         return 1
     fi
-    
+
+    log_info "Executando lint na release $release_name..."
     if ! run_helmfile "$release_dir" "lint"; then
-        log_error "Falha no lint da release $release_name"
+        log_error "Release $release_name: Falha no lint"
         return 1
     fi
-    
+    log_info "Lint concluído com sucesso"
+
+    log_info "Verificando mudanças na release $release_name..."
     if check_changes "$release_dir"; then
         log_info "Mudanças detectadas na release $release_name"
-        
+
         if confirm_action "Deseja aplicar as mudanças em $release_name? (Enter ou 'n' para não, 's' para sim)" "$auto_apply"; then
+            log_info "Aplicando mudanças na release $release_name..."
             if ! run_helmfile "$release_dir" "apply"; then
-                log_error "Falha no apply da release $release_name"
+                log_error "Release $release_name: Falha ao aplicar mudanças"
                 return 1
             fi
-            log_info "Release $release_name atualizada com sucesso"
+            log_info "Release $release_name: Atualizada com sucesso"
             return 0
         else
-            log_warn "Apply cancelado pelo usuário"
+            log_warn "Release $release_name: Apply cancelado pelo usuário"
             return 0
         fi
     else
-        log_warn "Nenhuma mudança detectada na release $release_name"
+        log_info "Release $release_name: Sem mudanças necessárias"
         return 0
     fi
 }
@@ -229,20 +233,25 @@ main() {
         releases=("$RELEASES_DIR"/*/)
     else
         specific_release="$RELEASES_DIR/$specific_release"
-        
+
         if [ ! -d "$specific_release" ]; then
             log_error "Release não encontrada: $specific_release"
             show_help
             exit 1
         fi
-        
+
         releases=("$specific_release")
     fi
+
+    log_info "Iniciando processamento de releases..."
+    log_info "Total de releases a processar: ${#releases[@]}"
+    log_info "Modo auto-apply: $auto_apply"
+    log_info "==============================================="
 
     # Processa cada release
     for release_dir in "${releases[@]}"; do
         total_releases=$((total_releases + 1))
-        
+
         if process_release "$release_dir" "$auto_apply"; then
             changed_releases=$((changed_releases + 1))
         else
