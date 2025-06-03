@@ -4,11 +4,14 @@ all:
     control_plane_endpoint: 192.168.15.105
     load_balancer_ip_pool:
       - 192.168.15.101
+    domain: homelab.tech
+    pihole_ip: 192.168.15.102
+    ansible_python_interpreter: /usr/bin/python3.12
 k3s:
   children:
     masters:
       hosts:
-        server0: {ansible_host: 192.168.15.105, ansible_user: ubuntu, ansible_become: true}
+        master0: {ansible_host: 192.168.15.105, ansible_user: ubuntu, ansible_become: true}
     workers:
       hosts:
         worker0: {ansible_host: 192.168.15.106, ansible_user: ubuntu, ansible_become: true}

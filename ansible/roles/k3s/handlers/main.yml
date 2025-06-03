@@ -1,4 +1,13 @@
 ---
+- name: Install required Python packages
+  ansible.builtin.pip:
+    name:
+      - kubernetes
+      - openshift
+    state: present
+  delegate_to: localhost
+  run_once: true
+
 - name: restart coredns
   kubernetes.core.k8s:
     kind: Deployment
@@ -10,4 +19,5 @@
         template:
           metadata:
             annotations:
-              coredns-reload-trigger: "{{ lookup('pipe', 'date +%s') }}" 
+              coredns-reload-trigger: "{{ lookup('pipe', 'date +%s') }}"
+  delegate_to: localhost

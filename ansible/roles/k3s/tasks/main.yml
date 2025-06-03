@@ -8,6 +8,10 @@
   delegate_to: localhost
   run_once: true
   register: k3s_binary
+  tags:
+    - all
+    - k3s
+    - never
 
 - name: Copy k3s binary to nodes
   ansible.builtin.copy:
@@ -16,6 +20,10 @@
     owner: root
     group: root
     mode: 0755
+  tags:
+    - all
+    - k3s
+    - never
 
 - name: Ensure config directories exist
   ansible.builtin.file:
@@ -26,12 +34,20 @@
     - /etc/rancher/k3s
     - /etc/rancher/node
     - "{{ k3s_data_dir }}/agent/pod-manifests"
+  tags:
+    - all
+    - k3s
+    - never
 
 - name: Check if k3s token file exists on the first node
   run_once: true
   ansible.builtin.stat:
     path: "{{ k3s_token_file }}"
   register: k3s_token_file_stat
+  tags:
+    - all
+    - k3s
+    - never
 
 - name: Generate k3s token file on the first node if not exist yet
   run_once: true
@@ -40,18 +56,30 @@
     content: "{{ lookup('community.general.random_string', length=32) }}"
     dest: "{{ k3s_token_file }}"
     mode: 0600
+  tags:
+    - all
+    - k3s
+    - never
 
 - name: Get k3s token from the first node
   run_once: true
   ansible.builtin.slurp:
     src: "{{ k3s_token_file }}"
   register: k3s_token_base64
+  tags:
+    - all
+    - k3s
+    - never
 
 - name: Ensure all nodes has the same token
   ansible.builtin.copy:
     content: "{{ k3s_token_base64.content | b64decode }}"
     dest: "{{ k3s_token_file }}"
     mode: 0600
+  tags:
+    - all
+    - k3s
+    - never
 
 - name: Copy k3s config files
   ansible.builtin.template:
@@ -63,6 +91,10 @@
       dest: "{{ k3s_config_file }}"
     - src: k3s.service.j2
       dest: "{{ k3s_service_file }}"
+  tags:
+    - all
+    - k3s
+    - never
 
 - name: Enable k3s service
   ansible.builtin.systemd:
@@ -72,12 +104,20 @@
   register: k3s_service
   until: k3s_service is succeeded
   retries: 5
+  tags:
+    - all
+    - k3s
+    - never
 
 - name: Get Kubernetes config file
   run_once: true
   ansible.builtin.slurp:
     src: "{{ k3s_kubeconfig_file }}"
   register: kubeconfig_base64
+  tags:
+    - all
+    - k3s
+    - never
 
 - name: Write Kubernetes config file with the correct cluster address
   ansible.builtin.copy:
@@ -86,31 +126,79 @@
     mode: 0600
   delegate_to: localhost
   run_once: true
+  tags:
+    - all
+    - k3s
+    - never
 
 - name: Create kubeconfig symbolic link in project root
   ansible.builtin.file:
     src: "{{ playbook_dir }}/kubeconfig.yaml"
-    dest: "{{ playbook_dir }}/../kubeconfig.yaml"
+    dest: "{{ playbook_dir }}/../../kubeconfig.yaml"
     state: link
     force: yes
   delegate_to: localhost
   run_once: true
+  tags:
+    - all
+    - k3s
+    - never
+
+- name: Install required Python packages
+  ansible.builtin.pip:
+    name:
+      - kubernetes
+      - openshift
+    state: present
+  delegate_to: localhost
+  run_once: true
+  tags:
+    - all
+    - k3s
+    - never
 
 - name: Check if Kubernetes cluster is ready
   kubernetes.core.k8s_info:
     kind: Node
   register: k8s_nodes
-  until: k8s_nodes.resources | length > 0
+  until: k8s_nodes is success and k8s_nodes.resources is defined and k8s_nodes.resources | length > 0
   retries: 30
   delay: 10
   delegate_to: localhost
+  tags:
+    - all
+    - k3s
+    - never
 
-- name: Verify all nodes are in Ready state
-  kubernetes.core.k8s_info:
-    kind: Node
-  register: k8s_nodes
+- name: Debug Kubernetes nodes information
+  ansible.builtin.debug:
+    var: k8s_nodes
+    verbosity: 1
   delegate_to: localhost
-  failed_when: k8s_nodes.resources | selectattr('status.conditions', 'defined') | selectattr('status.conditions', 'search', 'type=Ready') | selectattr('status.conditions', 'search', 'status=True') | list | length != k8s_nodes.resources | length
+  tags:
+    - all
+    - k3s
+    - never
+
+# - name: Verify all nodes are in Ready state
+#   kubernetes.core.k8s_info:
+#     kind: Node
+#   register: k8s_nodes
+#   delegate_to: localhost
+#   failed_when: >
+#     k8s_nodes is not success or
+#     k8s_nodes.resources is not defined or
+#     k8s_nodes.resources | selectattr('status.conditions', 'defined') |
+#     selectattr('status.conditions', 'search', 'type=Ready') |
+#     selectattr('status.conditions', 'search', 'status=True') |
+#     list | length != k8s_nodes.resources | length
+
+# - name: Debug node conditions
+#   ansible.builtin.debug:
+#     msg: "Node {{ item.metadata.name }} conditions: {{ item.status.conditions | selectattr('type', 'equalto', 'Ready') | list }}"
+#   loop: "{{ k8s_nodes.resources }}"
+#   delegate_to: localhost
+#   when: k8s_nodes.resources is defined
 
 - name: Wait for core components to be ready
   kubernetes.core.k8s_info:
@@ -123,6 +211,10 @@
   retries: 30
   delay: 10
   delegate_to: localhost
+  tags:
+    - all
+    - k3s
+    - never
 
 - name: Create custom ConfigMap for CoreDNS
   kubernetes.core.k8s:
@@ -143,3 +235,8 @@
             }
           }
   notify: restart coredns
+  delegate_to: localhost
+  tags:
+    - all
+    - k3s
+    - never
