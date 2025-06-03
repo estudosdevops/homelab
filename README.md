@@ -41,16 +41,6 @@ K3s é uma distribuição Kubernetes certificada pela CNCF, projetada para ser:
 └── monitoring/       # Configurações de monitoramento
 ```
 
-## Pré-requisitos
-
-- Ansible
-- Docker (opcional)
-- Git
-
-## Documentação
-
-Para começar a usar este projeto, consulte o [Guia de Início Rápido](docs/getting_started.md).
-
 ## Ferramentas Utilizadas
 
 Este homelab utiliza um cluster K3s com as seguintes ferramentas:
@@ -78,57 +68,47 @@ Este homelab utiliza um cluster K3s com as seguintes ferramentas:
 | Loki | Sistema de agregação de logs | [Loki](https://grafana.com/oss/loki/) |
 | Promtail | Coletor de logs para Loki | [Promtail](https://grafana.com/docs/loki/latest/clients/promtail/) |
 
-## CLI Homelab
-
-O projeto inclui um CLI (Command Line Interface) para facilitar a execução dos playbooks Ansible.
-
-### Uso Básico
+## Uso Básico
 
 ```bash
 # Listar todos os playbooks disponíveis
 ./homelab list
 
 # Executar um playbook em modo check (dry-run)
-./homelab check nome_playbook
+./homelab check k3s
 
 # Executar um playbook em modo create
-./homelab create nome_playbook
-
-# Executar um playbook com inventário personalizado
-./homelab check nome_playbook inventario_personalizado
+./homelab create k3s
 
 # Executar um playbook com variáveis extras
-./homelab create nome_playbook k3s --extra-vars 'var1=value1 var2=value2'
+./homelab create k3s --extra-vars 'var1=value1 var2=value2'
+
+# Executar um playbook solicitando senhas SSH e sudo
+./homelab create k3s -k -K
+
+# Executar um playbook apenas com tags específicas
+./homelab create k3s --tags 'tag1,tag2'
 ```
 
-### Opções Disponíveis
+## Documentação
 
-- `-h, --help`: Mostra a mensagem de ajuda
-- `list`: Lista todos os playbooks disponíveis
-- `check`: Executa o playbook em modo check (dry-run)
-- `create`: Executa o playbook em modo create
-- `--extra-vars`: Permite passar variáveis extras para o playbook
+Para informações detalhadas sobre:
+- Instalação e configuração
+- Uso de tags e roles
+- Troubleshooting
+- Novas funcionalidades
+- Estrutura detalhada do projeto
 
-## Como Usar
+Consulte o [Guia de Início Rápido](docs/getting_started.md).
 
-1. Clone este repositório
-2. Configure seu inventário em `ansible/inventories`
-3. Use o CLI homelab para executar os playbooks:
-   ```bash
-   # Exemplo: Executar o playbook k3s
-   ./homelab check k3s
-   ./homelab create k3s
-   ```
+## Contribuindo
 
-## Manutenção
+1. Faça um fork do repositório
+2. Crie uma branch para sua feature
+3. Faça commit das suas alterações
+4. Faça push para a branch
+5. Abra um Pull Request
 
-Este repositório segue as seguintes convenções:
+## Licença
 
-- Todos os playbooks devem ter documentação
-- Scripts devem ter comentários explicativos
-- Variáveis sensíveis devem ser armazenadas de forma segura
-- Commits devem seguir o padrão convencional
-
-## Backup
-
-Instruções sobre backup e recuperação serão mantidas na pasta `docs/`. 
+Este projeto está licenciado sob a Licença MIT - veja o arquivo LICENSE para detalhes.

@@ -4,28 +4,43 @@
     path: "{{ playbook_dir }}/../../scripts/helmfile-releases.sh"
   register: helmfile_script
   delegate_to: localhost
+  tags:
+    - all
+    - addons
+    - never
 
 - name: Fail if script is not found
   ansible.builtin.fail:
     msg: "Script helmfile-releases.sh not found in {{ playbook_dir }}/../../scripts/"
   when: not helmfile_script.stat.exists
   delegate_to: localhost
+  tags:
+    - all
+    - addons
+    - never
 
 - name: Make script executable
   ansible.builtin.file:
     path: "{{ playbook_dir }}/../../scripts/helmfile-releases.sh"
     mode: "0755"
   delegate_to: localhost
+  tags:
+    - all
+    - addons
+    - never
 
 - name: Install or update all releases
-  ansible.builtin.command:
+  ansible.builtin.shell:
     cmd: "{{ playbook_dir }}/../../scripts/helmfile-releases.sh --auto-apply"
-    chdir: "{{ playbook_dir }}/../.."
-  register: helmfile_result
-  delegate_to: localhost
-  changed_when: helmfile_result.rc == 0
-  failed_when: helmfile_result.rc != 0
+    chdir: "{{ playbook_dir }}/../../"
+  register: helmfile_output
+  changed_when: helmfile_output.rc == 0
+  failed_when: helmfile_output.rc != 0
   when: release_name is not defined
+  tags:
+    - all
+    - addons
+    - never
 
 - name: Install or update {{ release_name }}
   ansible.builtin.command:
@@ -36,3 +51,7 @@
   changed_when: helmfile_single_result.rc == 0
   failed_when: helmfile_single_result.rc != 0
   when: release_name is defined
+  tags:
+    - all
+    - addons
+    - never
