@@ -180,26 +180,6 @@
     - k3s
     - never
 
-# - name: Verify all nodes are in Ready state
-#   kubernetes.core.k8s_info:
-#     kind: Node
-#   register: k8s_nodes
-#   delegate_to: localhost
-#   failed_when: >
-#     k8s_nodes is not success or
-#     k8s_nodes.resources is not defined or
-#     k8s_nodes.resources | selectattr('status.conditions', 'defined') |
-#     selectattr('status.conditions', 'search', 'type=Ready') |
-#     selectattr('status.conditions', 'search', 'status=True') |
-#     list | length != k8s_nodes.resources | length
-
-# - name: Debug node conditions
-#   ansible.builtin.debug:
-#     msg: "Node {{ item.metadata.name }} conditions: {{ item.status.conditions | selectattr('type', 'equalto', 'Ready') | list }}"
-#   loop: "{{ k8s_nodes.resources }}"
-#   delegate_to: localhost
-#   when: k8s_nodes.resources is defined
-
 - name: Wait for core components to be ready
   kubernetes.core.k8s_info:
     kind: Pod
