@@ -33,8 +33,8 @@ validate_required_args() {
         log_error_and_exit "Nome do playbook é obrigatório"
     fi
 
-    if [ "$action" != "check" ] && [ "$action" != "create" ]; then
-        log_error_and_exit "Ação inválida. Use 'check' ou 'create'"
+    if [ "$action" != "check" ] && [ "$action" != "apply" ]; then
+        log_error_and_exit "Ação inválida. Use 'check' ou 'apply'"
     fi
 }
 
@@ -128,11 +128,11 @@ run_ansible() {
         "check")
             eval "${ansible_cmd} --check"
             ;;
-        "create")
+        "apply")
             eval "${ansible_cmd}"
             ;;
         *)
-            log_error_and_exit "Modo inválido. Use 'check' ou 'create'"
+            log_error_and_exit "Modo inválido. Use 'check' ou 'apply'"
             ;;
     esac
 
@@ -173,17 +173,17 @@ Opções:
   list          Lista todos os playbooks disponíveis
 
 Argumentos:
-  ação          Ação a ser executada: check ou create
+  ação          Ação a ser executada: check ou apply
   nome_playbook  Nome do playbook a ser executado (sem extensão .yml)
   ansible_opções (Opcional) Qualquer opção válida do ansible-playbook
 
 Exemplos:
   $0 list                    # Lista todos os playbooks disponíveis
   $0 check k3s              # Executa playbook k3s em modo check
-  $0 create k3s             # Executa playbook k3s em modo create
-  $0 create k3s --extra-vars 'var1=value1 var2=value2'    # Executa playbook com variáveis extras
-  $0 create k3s -k -K       # Executa playbook solicitando senhas SSH e sudo
-  $0 create k3s --tags 'tag1,tag2'    # Executa playbook apenas com tags específicas
+  $0 apply k3s             # Executa playbook k3s em modo apply
+  $0 apply k3s --extra-vars 'var1=value1 var2=value2'    # Executa playbook com variáveis extras
+  $0 apply k3s -k -K       # Executa playbook solicitando senhas SSH e sudo
+  $0 apply k3s --tags 'tag1,tag2'    # Executa playbook apenas com tags específicas
 
 Nota: Todos os playbooks devem estar em ${PLAYBOOKS_DIR}/
       Todos os arquivos de inventário devem estar em ${INVENTORIES_DIR}/
@@ -210,7 +210,7 @@ main() {
     # Process remaining arguments
     shift 2
     local processed_args
-    processed_args=($(process_ansible_opts "$@"))
+    mapfile -t processed_args < <(process_ansible_opts "$@")
     local inventory=${processed_args[0]}
     local ansible_opts=("${processed_args[@]:1}")
 

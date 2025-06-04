@@ -22,19 +22,19 @@ log_error() {
 # Função para validar dependências
 check_dependency() {
     local missing_deps=()
-    
+
     for dep in "$@"; do
         if ! command -v "$dep" &> /dev/null; then
             missing_deps+=("$dep")
         fi
     done
-    
+
     if [ ${#missing_deps[@]} -ne 0 ]; then
         log_error "Dependências não encontradas: ${missing_deps[*]}"
         log_info "Por favor, instale as dependências necessárias e tente novamente"
         exit 1
     fi
-    
+
     log_info "Todas as dependências encontradas: $*"
 }
 
@@ -44,4 +44,4 @@ check_env_var() {
         log_error "Variável de ambiente '$1' não definida"
         exit 1
     fi
-} 
+}

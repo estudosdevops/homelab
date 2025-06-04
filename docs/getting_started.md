@@ -48,20 +48,20 @@ O projeto inclui um CLI (Command Line Interface) para facilitar a execução dos
    # Modo check (dry-run)
    ./homelab check k3s
 
-   # Modo create
-   ./homelab create k3s
+   # Modo apply
+   ./homelab apply k3s
 
    # Com variáveis extras
-   ./homelab create k3s --extra-vars 'var1=value1 var2=value2'
+   ./homelab apply k3s --extra-vars 'var1=value1 var2=value2'
 
    # Solicitando senhas SSH e sudo
-   ./homelab create k3s -k -K
+   ./homelab apply k3s -k -K
 
    # Executando apenas tags específicas
-   ./homelab create k3s --tags 'tag1,tag2'
+   ./homelab apply k3s --tags 'tag1,tag2'
 
    # Combinando múltiplas opções
-   ./homelab create k3s --tags 'tag1,tag2' --extra-vars 'var1=value1' -k -K
+   ./homelab apply k3s --tags 'tag1,tag2' --extra-vars 'var1=value1' -k -K
    ```
 
 ## Configuração Inicial
@@ -78,7 +78,7 @@ O projeto inclui um CLI (Command Line Interface) para facilitar a execução dos
 3. Execute o playbook inicial usando o CLI:
    ```bash
    ./homelab check k3s
-   ./homelab create k3s
+   ./homelab apply k3s
    ```
 
 ## Estrutura de Diretórios
@@ -118,27 +118,27 @@ Os playbooks usam tags do Ansible para fornecer controle mais granular sobre qua
 
 1. Executar apenas a role setup:
    ```bash
-   ./homelab create setup --tags setup
+   ./homelab apply setup --tags setup
    ```
 
 2. Executar apenas a instalação do K3s:
    ```bash
-   ./homelab create k3s --tags k3s
+   ./homelab apply k3s --tags k3s
    ```
 
 3. Executar apenas a instalação de addons:
    ```bash
-   ./homelab create addons --tags addons
+   ./homelab apply addons --tags addons
    ```
 
 4. Executar múltiplas roles:
    ```bash
-   ./homelab create k3s --tags "k3s,addons"
+   ./homelab apply k3s --tags "k3s,addons"
    ```
 
 5. Executar todas as roles:
    ```bash
-   ./homelab create k3s --tags all
+   ./homelab apply k3s --tags all
    ```
 
 ## Novas Funcionalidades
@@ -172,7 +172,7 @@ Os playbooks agora instalam automaticamente os pacotes Python necessários quand
 
 2. **Cluster Kubernetes Não Pronto**
    - O playbook inclui verificações robustas para prontidão do cluster
-   - Informações de debug estão disponíveis com verbosidade aumentada: `./homelab create k3s -vv`
+   - Informações de debug estão disponíveis com verbosidade aumentada: `./homelab apply k3s -vv`
 
 3. **Script Helmfile Não Encontrado**
    - Certifique-se de que o script está no local correto: `scripts/helmfile-releases.sh`
@@ -182,17 +182,17 @@ Os playbooks agora instalam automaticamente os pacotes Python necessários quand
 
 Para obter uma saída mais detalhada, adicione flags de verbosidade:
 ```bash
-./homelab create k3s -vv
+./homelab apply k3s -vv
 ```
 
 Para ainda mais detalhes:
 ```bash
-./homelab create k3s -vvv
+./homelab apply k3s -vvv
 ```
 
 ## Boas Práticas
 
-1. Sempre use o modo `check` antes de executar em modo `create`
+1. Sempre use o modo `check` antes de executar em modo `apply`
 2. Mantenha seus inventários atualizados
 3. Documente todas as alterações significativas
 4. Faça backup regularmente usando o script em `scripts/backup.sh`

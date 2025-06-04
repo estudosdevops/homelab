@@ -8,7 +8,7 @@ configs:
     extra:
       accounts.fabio.password: "$2a$12$Is2nFwbT3vqlO7cn3quxWur/QUmmOkQ4lqDy39ADrk.HO6GwVEwTi"
       accounts.gustavo.password: "$2a$12$dDSkCJfKBWOzfGncBwW05un7x51gRdbgZCvf67fi6qXGXObtnodjm"
-  
+
   params:
     server.insecure: true
     controller.diff.server.side: true
@@ -16,10 +16,10 @@ configs:
   rbac:
     policy.csv: |
       g, fabio, role:admin
-      g, gustavo, role:admin  
+      g, gustavo, role:admin
     scopes: "[cognito:groups, email]"
     policy.default: role:""
-  
+
   cm:
     url: http://argocd.homelab.tech
     accounts.admin: apiKey
@@ -31,12 +31,12 @@ configs:
     resource.customizations.ignoreResourceUpdates.all: |
       jsonPointers:
         - /status
-    
+
 server:
   ingress:
     enabled: true
     ingressClassName: nginx
-    
+
   metrics:
     enabled: false
 

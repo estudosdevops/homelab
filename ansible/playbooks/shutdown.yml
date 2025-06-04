@@ -1,0 +1,31 @@
+# Description: Shutdown all machines k3s
+---
+- name: Shutdown all machines
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Display warning message
+      ansible.builtin.debug:
+        msg: "WARNING: This will shutdown all machines in the inventory. Make sure all services are properly stopped."
+      run_once: true
+
+    - name: Wait for user confirmation
+      ansible.builtin.pause:
+        prompt: "Do you want to proceed with shutdown? (yes/no)"
+      register: confirm
+      run_once: true
+
+    - name: Shutdown machines
+      ansible.builtin.command:
+        cmd: shutdown -h +1 "Shutdown initiated by Ansible"
+      when: confirm.user_input | lower == 'yes'
+
+    - name: Wait for machines to shutdown
+      ansible.builtin.wait_for:
+        host: "{{ ansible_host }}"
+        port: 22
+        state: stopped
+        timeout: 300
+        delay: 60
+      delegate_to: localhost
+      when: confirm.user_input | lower == 'yes'

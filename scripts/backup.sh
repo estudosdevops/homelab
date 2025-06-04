@@ -35,4 +35,4 @@ fi
 # Mantém apenas os últimos 7 backups
 find "$BACKUP_DIR" -name "homelab_backup_*.tar.gz" -mtime +7 -delete
 
-exit 0 
+exit 0

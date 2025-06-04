@@ -77,17 +77,17 @@ Este homelab utiliza um cluster K3s com as seguintes ferramentas:
 # Executar um playbook em modo check (dry-run)
 ./homelab check k3s
 
-# Executar um playbook em modo create
-./homelab create k3s
+# Executar um playbook em modo apply
+./homelab apply k3s
 
 # Executar um playbook com variáveis extras
-./homelab create k3s --extra-vars 'var1=value1 var2=value2'
+./homelab apply k3s --extra-vars 'var1=value1 var2=value2'
 
 # Executar um playbook solicitando senhas SSH e sudo
-./homelab create k3s -k -K
+./homelab apply k3s -k -K
 
 # Executar um playbook apenas com tags específicas
-./homelab create k3s --tags 'tag1,tag2'
+./homelab apply k3s --tags 'tag1,tag2'
 ```
 
 ## Documentação
