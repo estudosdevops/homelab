@@ -109,6 +109,6 @@ Consulte o [Guia de Início Rápido](docs/getting_started.md).
 4. Faça push para a branch
 5. Abra um Pull Request
 
-## Licença
+## Licençaa
 
 Este projeto está licenciado sob a Licença MIT - veja o arquivo LICENSE para detalhes.
