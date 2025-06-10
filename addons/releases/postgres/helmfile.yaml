@@ -1,0 +1,21 @@
+---
+bases:
+  - "../../bases/helmDefaults.yaml"
+
+---
+repositories:
+  - name: postgresql
+    url: https://charts.bitnami.com/bitnami
+
+---
+releases:
+  - name: postgresql
+    createNamespace: true
+    namespace: postgres
+    chart: bitnami/postgresql
+    version: ~16.7.10
+    values:
+      - values/values.yaml.gotmpl
+    labels:
+      tier: database
+    disableValidationOnInstall: true
