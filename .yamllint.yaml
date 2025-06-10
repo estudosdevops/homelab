@@ -1,6 +1,7 @@
 ignore: |
   templates/
   mkdocs.yml
+  kubeconfig.yaml
 
 extends: default
 

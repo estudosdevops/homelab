@@ -196,6 +196,20 @@
     - k3s
     - never
 
+- name: Remove o taints from nodes K3s
+  kubernetes.core.k8s_taint:
+    state: absent
+    name: "{{ inventory_hostname }}"
+    kubeconfig: "{{ playbook_dir }}/../../kubeconfig.yaml"
+    taints:
+      - key: node.kubernetes.io/not-ready
+        effect: "NoSchedule"
+  delegate_to: localhost
+  tags:
+    - all
+    - k3s
+    - never
+
 - name: Create custom ConfigMap for CoreDNS
   kubernetes.core.k8s:
     state: present
