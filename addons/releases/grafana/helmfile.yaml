@@ -1,0 +1,20 @@
+---
+bases:
+  - "../../bases/helmDefaults.yaml"
+
+---
+repositories:
+  - name: grafana
+    url: https://grafana.github.io/helm-charts
+
+---
+releases:
+  - name: grafana
+    namespace: monitoring-system
+    chart: grafana/grafana
+    version: ~9.2.2
+    values:
+      - values/values.yaml.gotmpl
+    labels:
+      tier: monitoring
+    disableValidationOnInstall: true
