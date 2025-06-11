@@ -1,0 +1,46 @@
+---
+adminPassword: admin
+defaultDashboardsTimezone: utc-3
+
+ingress:
+  enabled: true
+  ingressClassName: nginx
+  hosts:
+    - grafana.homelab.tech
+
+sidecar:
+  dashboards:
+    enabled: true
+    searchNamespace: monitoring-system
+  datasources:
+    enabled: true
+    searchNamespace: monitoring-system
+
+grafana.ini:
+  server:
+    domain: dashboards.pre.gitlab.net
+    root_url: http://grafana.homelab.tech
+  alerting:
+    enabled: false
+  analytics:
+    check_for_updates: false
+    reporting_enabled: false
+  dashboards:
+    min_refresh_interval: 5m
+  security:
+    angular_support_enabled: false
+
+persistence:
+  enabled: true
+  size: 1Gi
+
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        url: http://kube-prometheus-stack-prometheus:9090
+        jsonData:
+          httpMethod: GET
+          timeInterval: 5s
