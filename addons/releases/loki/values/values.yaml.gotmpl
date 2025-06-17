@@ -1,0 +1,14 @@
+ingress:
+  enabled: true
+  ingressClassName: nginx
+  hosts:
+    - loki.homelab.tech
+
+loki:
+  commonConfig:
+    replication_factor: 1
+
+singleBinary:
+  replicas: 1
+  persistence:
+    size: 8Gi 
