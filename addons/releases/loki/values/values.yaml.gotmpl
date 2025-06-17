@@ -5,6 +5,13 @@ loki:
   commonConfig:
     replication_factor: 1
   auth_enabled: false
+  limits_config:
+    retention_period: 5d
+  compactor:
+    working_directory: /tmp/loki/retention
+    retention_enabled: true
+    retention_delete_delay: 2h
+    delete_request_store: filesystem
 
 singleBinary:
   replicas: 1
