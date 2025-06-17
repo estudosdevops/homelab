@@ -1,14 +1,26 @@
-ingress:
-  enabled: true
-  ingressClassName: nginx
-  hosts:
-    - loki.homelab.tech
+---
+nameOverride: loki
 
 loki:
   commonConfig:
     replication_factor: 1
+  auth_enabled: false
 
 singleBinary:
   replicas: 1
   persistence:
-    size: 8Gi 
+    size: 5Gi
+
+write:
+  replicas: 1
+  persistence:
+    size: 2Gi
+
+read:
+  replicas: 1
+  persistence:
+    size: 2Gi
+  legacyReadTarget: true
+
+backend:
+  replicas: 0
