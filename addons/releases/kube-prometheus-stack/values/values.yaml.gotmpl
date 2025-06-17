@@ -1,0 +1,31 @@
+---
+nameOverride: kube-prometheus-stack
+
+grafana:
+  enabled: false
+  forceDeployDatasources: true
+  forceDeployDashboards: true
+
+prometheusOperator:
+  logFormat: json
+
+prometheus:
+  prometheusSpec:
+    scrapeInterval: 30s
+    evaluationInterval: 30s
+    retention: 1d
+    retentionSize: "2GB"
+    ruleSelectorNilUsesHelmValues: false
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    probeSelectorNilUsesHelmValues: false
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 2Gi
+
+alertmanager:
+  enabled: false
