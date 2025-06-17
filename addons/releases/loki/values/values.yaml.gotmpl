@@ -2,9 +2,9 @@
 nameOverride: loki
 
 loki:
+  auth_enabled: false
   commonConfig:
     replication_factor: 1
-  auth_enabled: false
   limits_config:
     retention_period: 5d
   compactor:
@@ -24,10 +24,10 @@ write:
     size: 2Gi
 
 read:
+  legacyReadTarget: true
   replicas: 1
   persistence:
     size: 2Gi
-  legacyReadTarget: true
 
 backend:
   replicas: 0

@@ -7,7 +7,6 @@ repositories:
     url: https://grafana.github.io/helm-charts
 
 ---
-
 releases:
   - name: loki
     chart: grafana/loki
