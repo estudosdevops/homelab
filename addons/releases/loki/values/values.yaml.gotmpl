@@ -1,0 +1,33 @@
+---
+nameOverride: loki
+
+loki:
+  auth_enabled: false
+  commonConfig:
+    replication_factor: 1
+  limits_config:
+    retention_period: 5d
+  compactor:
+    working_directory: /tmp/loki/retention
+    retention_enabled: true
+    retention_delete_delay: 2h
+    delete_request_store: filesystem
+
+singleBinary:
+  replicas: 1
+  persistence:
+    size: 5Gi
+
+write:
+  replicas: 1
+  persistence:
+    size: 2Gi
+
+read:
+  legacyReadTarget: true
+  replicas: 1
+  persistence:
+    size: 2Gi
+
+backend:
+  replicas: 0
