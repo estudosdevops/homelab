@@ -8,15 +8,15 @@ NC='\033[0m' # No Color
 
 # Função para logs
 log_info() {
-    echo -e "${GREEN}[INFO]${NC} ✓ $1"
+    echo -e "${GREEN}info:${NC} $1"
 }
 
 log_warn() {
-    echo -e "${YELLOW}[WARN]${NC} ⚠️ $1"
+    echo -e "${YELLOW}warn:${NC} $1"
 }
 
 log_error() {
-    echo -e "${RED}[ERROR]${NC} ✗ $1"
+    echo -e "${RED}error:${NC} $1"
 }
 
 # Função para validar dependências

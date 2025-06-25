@@ -1,33 +1,79 @@
 ---
-nameOverride: loki
+deploymentMode: SingleBinary
 
 loki:
   auth_enabled: false
   commonConfig:
     replication_factor: 1
   limits_config:
-    retention_period: 5d
+    retention_period: 168h
   compactor:
-    working_directory: /tmp/loki/retention
+    working_directory: /var/loki/compactor
+    compaction_interval: 10m
     retention_enabled: true
     retention_delete_delay: 2h
     delete_request_store: filesystem
+  structuredConfig:
+    ingester:
+      chunk_idle_period: 3m
+      chunk_retain_period: 1m
+
+    schema_config:
+      configs:
+        - from: 2024-04-01
+          store: tsdb
+          object_store: filesystem
+          schema: v13
+          index:
+            prefix: index_
+            period: 24h
+
+  storage:
+    type: 'filesystem'
 
 singleBinary:
   replicas: 1
   persistence:
     size: 5Gi
 
-write:
-  replicas: 1
-  persistence:
-    size: 2Gi
-
-read:
-  legacyReadTarget: true
-  replicas: 1
-  persistence:
-    size: 2Gi
+gateway:
+  enabled: false
 
 backend:
   replicas: 0
+
+read:
+  replicas: 0
+
+write:
+  replicas: 0
+
+ingester:
+  enabled: false
+
+distributor:
+  enabled: false
+
+querier:
+  enabled: false
+
+queryFrontend:
+  enabled: false
+
+lokiCanary:
+  enabled: false
+
+test:
+  enabled: false
+
+monitoring:
+  serviceMonitor:
+    enabled: false
+  rules:
+    enabled: false
+  alerts:
+    enabled: false
+  selfMonitoring:
+    enabled: false
+    lokiCanary:
+      enabled: false
