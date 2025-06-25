@@ -1,6 +1,5 @@
 ---
 adminPassword: admin
-defaultDashboardsTimezone: utc-3
 
 ingress:
   enabled: true
@@ -16,9 +15,12 @@ sidecar:
     enabled: true
     searchNamespace: monitoring-system
 
+env:
+  TZ: "America/Sao_Paulo"
+
 grafana.ini:
   server:
-    domain: dashboards.pre.gitlab.net
+    domain: grafana.homelab.tech
     root_url: http://grafana.homelab.tech
   alerting:
     enabled: false
@@ -29,6 +31,8 @@ grafana.ini:
     min_refresh_interval: 5m
   security:
     angular_support_enabled: false
+  date_formats:
+    default_timezone: America/Sao_Paulo
 
 persistence:
   enabled: true
