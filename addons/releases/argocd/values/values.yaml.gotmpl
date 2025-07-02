@@ -6,23 +6,17 @@ configs:
   secret:
     argocdServerAdminPassword: "$2a$12$QXEuerIhbTfkyUm2D3aame.Q3CkxWCCRONADC0rFEy2am1IgOkYwe"
     extra:
-      accounts.fabio.password: "$2a$12$Is2nFwbT3vqlO7cn3quxWur/QUmmOkQ4lqDy39ADrk.HO6GwVEwTi"
+      accounts.fabio.password: "$2a$12$kkufEB7JGh.Ta/RpeqzWVuUMJmYwXN4JVMFHWCBshDkcWxlEV7n3u"
       accounts.gustavo.password: "$2a$12$dDSkCJfKBWOzfGncBwW05un7x51gRdbgZCvf67fi6qXGXObtnodjm"
 
   params:
     server.insecure: true
     controller.diff.server.side: true
 
-  rbac:
-    policy.csv: |
-      g, fabio, role:admin
-      g, gustavo, role:admin
-    scopes: "[cognito:groups, email]"
-    policy.default: role:""
-
   cm:
     url: http://argocd.homelab.tech
     accounts.admin: apiKey
+    accounts.automation: apiKey
     accounts.fabio: apiKey, login
     accounts.gustavo: apiKey, login
     users.anonymous.enabled: "false"
@@ -31,6 +25,22 @@ configs:
     resource.customizations.ignoreResourceUpdates.all: |
       jsonPointers:
         - /status
+
+  rbac:
+    policy.csv: |
+      # Permission Policies automation user
+      p, role:automation, projects, *, *, allow
+      p, role:automation, applications, *, */*, allow
+      p, role:automation, repositories, *, *, allow
+
+      # Account association with role automation
+      g, automation, role:automation
+
+      # Others Accounts association with role admin
+      g, fabio, role:admin
+      g, gustavo, role:admin
+    scopes: "[cognito:groups, email]"
+    policy.default: role:""
 
 server:
   ingress:
