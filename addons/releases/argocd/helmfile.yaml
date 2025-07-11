@@ -18,3 +18,14 @@ releases:
     values:
       - values/values.yaml.gotmpl
     disableValidationOnInstall: true
+
+  - name: argo-rollouts
+    namespace: argo-rollouts
+    chart: argo/argo-rollouts
+    version: ~2.39.0
+    installed: true
+    labels:
+      tier: rollouts
+    values:
+      - values/rollouts.yaml.gotmpl
+    disableValidationOnInstall: true
