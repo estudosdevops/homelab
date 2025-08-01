@@ -1,0 +1,24 @@
+---
+name-template: 'v$NEXT_PATCH_VERSION'
+tag-template: 'v$NEXT_PATCH_VERSION'
+exclude-labels:
+  - 'skip-changelog'
+  - '🧪 test'
+categories:
+  - title: '🚀 Features'
+    labels:
+      - '🚀 feature'
+      - '✨ enhancement'
+  - title: '🐛 Bug Fixes'
+    labels:
+      - '🐛 bug'
+      - '🩹 fix'
+  - title: '🧹 Maintenance'
+    labels:
+      - '🧹 chore'
+      - '📚 docs'
+      - '🤖 ci'
+template: |
+  ## What's Changed
+
+  $CHANGES
