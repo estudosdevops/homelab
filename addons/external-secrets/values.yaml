@@ -1,0 +1,16 @@
+external-secrets:
+  installCRDs: true
+
+  replicaCount: 1
+
+  serviceMonitor:
+    enabled: false
+
+  controller:
+    logLevel: info
+
+  webhook:
+    logLevel: info
+
+  certController:
+    logLevel: info

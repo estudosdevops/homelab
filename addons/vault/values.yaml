@@ -1,0 +1,22 @@
+---
+vault:
+  injector:
+    enabled: false
+
+  server:
+    ingress:
+      enabled: true
+      ingressClassName: nginx
+
+      pathType: Prefix
+      activeService: true
+      hosts:
+        - host: vault.homelab.tech
+          paths:
+            - /
+
+    dataStorage:
+      size: 1Gi
+
+  ui:
+    enabled: true
