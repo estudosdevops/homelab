@@ -1,0 +1,11 @@
+---
+apiVersion: v2
+name: vault
+description: Um chart wrapper para instalar vault.
+type: application
+version: 0.1.0
+
+dependencies:
+  - name: vault
+    version: 0.*.*
+    repository: https://helm.releases.hashicorp.com

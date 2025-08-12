@@ -1,2 +1,6 @@
+# Helm charts
 Chart.lock
 charts
+
+# Vault
+cluster-keys.json
