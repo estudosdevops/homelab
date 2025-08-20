@@ -1,22 +1,68 @@
----
-vault:
-  injector:
-    enabled: false
+# addons/vault/values.yaml
+metadata:
+  annotations:
+    app.kubernetes.io/description: "HashiCorp Vault para secrets management"
 
-  server:
-    ingress:
+# Project específico (opcional, se não definir usa o global)
+project: vault
+
+chart:
+  repository: https://helm.releases.hashicorp.com
+  name: vault
+  version: "0.30.1"
+
+destination:
+  namespace: vault
+
+syncPolicy:
+  automated:
+    prune: true
+    selfHeal: true
+  syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+
+helm:
+  values:
+    injector:
+      enabled: false
+    global:
       enabled: true
-      ingressClassName: nginx
+      tlsDisable: true
 
-      pathType: Prefix
-      activeService: true
-      hosts:
-        - host: vault.homelab.tech
-          paths:
-            - /
+    server:
+      ingress:
+        enabled: true
+        ingressClassName: nginx
+        annotations:
+          cert-manager.io/cluster-issuer: "{{ .Values.global.tls.clusterIssuer }}"
+          nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+        hosts:
+          - host: "vault.{{ .Values.global.domain }}"
+        tls:
+          - secretName: "{{ .Values.global.tls.secretName }}"
+            hosts:
+              - "vault.{{ .Values.global.domain }}"
 
-    dataStorage:
-      size: 1Gi
+      dataStorage:
+        size: 1Gi
+        storageClass: "{{ .Values.global.storageClass }}"
 
-  ui:
-    enabled: true
+      standalone:
+        enabled: true
+        config: |
+          ui = true
+
+          listener "tcp" {
+            tls_disable = 1
+            address = "[::]:8200"
+            cluster_address = "[::]:8201"
+          }
+
+          storage "file" {
+            path = "/vault/data"
+          }
+
+    ui:
+      enabled: true
+      serviceType: "ClusterIP"

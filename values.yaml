@@ -1,0 +1,18 @@
+global:
+  domain: homelab.tech
+  argoNamespace: argocd
+  storageClass: longhorn
+  project: homelab  # Projeto padrão para todas as apps
+
+  # Configurações de TLS e certificados
+  tls:
+    secretName: wildcard-tls
+    clusterIssuer: homelab-ca-issuer
+
+# Criar o projeto automaticamente
+createProject: true
+
+enabledAddons:
+  - vault
+  - cert-manager
+  - external-secrets

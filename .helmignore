@@ -1,0 +1,41 @@
+# Arquivos de sistema
+.DS_Store
+.git/
+.gitignore
+.gitmodules
+
+# Arquivos de desenvolvimento
+*.tmp
+*.swp
+*.bak
+.vscode/
+.idea/
+
+# Arquivos grandes que podem existir
+k3s*
+*.iso
+*.img
+*.log
+*.tar
+*.tar.gz
+*.zip
+
+# Arquivos de teste
+test-output.yaml
+debug.yaml
+
+# Documentação
+README.md
+docs/
+
+# Scripts
+install.sh
+scripts/
+
+# Arquivos de CI/CD
+.github/
+.gitlab-ci.yml
+
+# Symlinks e configs do Kubernetes
+kubeconfig.yaml
+ansible/

@@ -4,3 +4,6 @@ charts
 
 # Vault
 cluster-keys.json
+
+# TLS
+homelab-ca.crt
