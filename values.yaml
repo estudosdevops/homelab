@@ -16,3 +16,4 @@ enabledAddons:
   - vault
   - cert-manager
   - external-secrets
+  - metallb
