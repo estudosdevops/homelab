@@ -1,0 +1,55 @@
+# addons/metallb/values.yaml
+metadata:
+  annotations:
+    app.kubernetes.io/description: "MetalLB Load Balancer para homelab"
+    argocd.argoproj.io/sync-wave: "1"
+
+# Project específico (opcional, se não definir usa o global)
+project: metallb-system
+
+chart:
+  repository: https://metallb.github.io/metallb
+  name: metallb
+  version: "0.15.2"
+
+destination:
+  namespace: metallb-system
+
+syncPolicy:
+  automated:
+    prune: true
+    selfHeal: true
+  syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+
+helm:
+  values:
+    # Controller - Componente central que gerencia IPs
+    controller:
+      enabled: true
+      logLevel: info
+
+    # Speaker - DaemonSet que anuncia IPs via L2/BGP
+    speaker:
+      enabled: true
+      logLevel: info
+
+    # Service Monitor para observabilidade (se Prometheus estiver disponível)
+    prometheus:
+      serviceMonitor:
+        enabled: false
+
+    # Configuração do IPAddressPool (usado pelo template separado)
+    ipPool:
+      name: "metallb-ip-pool"
+      addresses:
+        - "192.168.15.101-192.168.15.102"
+      autoAssign: true
+      avoidBuggyIPs: true
+
+    # Configuração do L2Advertisement (usado pelo template separado)
+    l2Advertisement:
+      name: "metallb-advertisement"
+      ipAddressPools:
+        - "metallb-ip-pool"

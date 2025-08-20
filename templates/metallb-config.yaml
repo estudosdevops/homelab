@@ -1,0 +1,26 @@
+{{- if has "metallb" .Values.enabledAddons }}
+{{- $metallbValues := .Files.Get "addons/metallb/values.yaml" | fromYaml }}
+{{- $metallbConfig := $metallbValues }}
+---
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: {{ $metallbConfig.helm.values.ipPool.name | default "metallb-ip-pool" }}
+  namespace: metallb-system
+spec:
+  addresses:
+  {{- range $metallbConfig.helm.values.ipPool.addresses }}
+  - {{ . }}
+  {{- end }}
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: {{ $metallbConfig.helm.values.l2Advertisement.name | default "metallb-advertisement" }}
+  namespace: metallb-system
+spec:
+  ipAddressPools:
+  {{- range $metallbConfig.helm.values.l2Advertisement.ipAddressPools }}
+  - {{ . }}
+  {{- end }}
+{{- end }}
