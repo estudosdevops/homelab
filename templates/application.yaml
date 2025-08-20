@@ -1,0 +1,139 @@
+{{- range $addonName := .Values.enabledAddons }}
+{{- /* Load and validate addon configuration using helper function */ -}}
+{{- $addonValues := include "homelab.getAddonConfig" (list $addonName $ $addonName) | fromYaml }}
+{{- $projectName := $addonValues.project | default $.Values.global.project }}
+
+{{- /* Validate namespace conflicts */ -}}
+{{- $namespace := $addonValues.destination.namespace | default $addonName }}
+{{- include "homelab.validateNamespace" (list $namespace $addonName $.Values.enabledAddons $) }}
+
+{{- /* Create specific project if not using global */ -}}
+{{- if and $.Values.createProject $addonValues.project (ne $addonValues.project $.Values.global.project) }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: {{ $projectName }}
+  namespace: {{ $.Values.global.argoNamespace }}
+  labels:
+    app.kubernetes.io/part-of: homelab
+    app.kubernetes.io/component: {{ $addonName }}
+spec:
+  description: "Project for {{ $addonName }} addon"
+
+  sourceRepos:
+  {{- if and $addonValues.chart $addonValues.chart.repository }}
+  - '{{ $addonValues.chart.repository }}'
+  {{- else }}
+  - 'https://charts.bitnami.com/bitnami'  # fallback padrão
+  {{- end }}
+  - '*'
+
+  destinations:
+  - namespace: '{{ $addonValues.destination.namespace | default $addonName }}'
+    server: https://kubernetes.default.svc
+  - namespace: kube-system
+    server: https://kubernetes.default.svc
+
+  clusterResourceWhitelist:
+  - group: '*'
+    kind: '*'
+
+  namespaceResourceWhitelist:
+  - group: '*'
+    kind: '*'
+{{- end }}
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ $addonName }}
+  namespace: {{ $.Values.global.argoNamespace }}
+  labels:
+    {{- include "homelab.labels" $ | nindent 4 }}
+    app.kubernetes.io/name: {{ $addonName }}
+    app.kubernetes.io/instance: {{ $addonName }}
+    app.kubernetes.io/component: addon
+  {{- if and $addonValues.metadata $addonValues.metadata.annotations }}
+  annotations:
+    {{- toYaml $addonValues.metadata.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  project: {{ $projectName }}
+
+  source:
+    {{- if and $addonValues.chart $addonValues.chart.repository $addonValues.chart.name }}
+    repoURL: {{ $addonValues.chart.repository }}
+    chart: {{ $addonValues.chart.name }}
+    targetRevision: {{ $addonValues.chart.version }}
+    {{- else }}
+    {{- fail (printf "Addon '%s' está faltando configuração obrigatória 'chart.repository' e 'chart.name' no arquivo addons/%s/values.yaml" $addonName $addonName) }}
+    {{- end }}
+    {{- if and $addonValues.helm $addonValues.helm.values }}
+    helm:
+      values: |
+        {{- $processedValues := $addonValues.helm.values | toYaml }}
+        {{- $processedValues = $processedValues | replace "{{ .Values.global.domain }}" $.Values.global.domain }}
+        {{- $processedValues = $processedValues | replace "{{ .Values.global.storageClass }}" ($.Values.global.storageClass | default "local-path") }}
+        {{- $processedValues = $processedValues | replace "{{ .Values.global.tls.secretName }}" $.Values.global.tls.secretName }}
+        {{- $processedValues = $processedValues | replace "{{ .Values.global.tls.clusterIssuer }}" $.Values.global.tls.clusterIssuer }}
+        {{ $processedValues | nindent 8 }}
+    {{- end }}
+
+  destination:
+    server: {{ $addonValues.destination.server | default "https://kubernetes.default.svc" }}
+    namespace: {{ $addonValues.destination.namespace | default $addonName }}
+
+  syncPolicy:
+    automated:
+      prune: {{ dig "syncPolicy" "automated" "prune" true $addonValues }}
+      selfHeal: {{ dig "syncPolicy" "automated" "selfHeal" true $addonValues }}
+    syncOptions:
+      {{- if and $addonValues.syncPolicy $addonValues.syncPolicy.syncOptions }}
+      {{- toYaml $addonValues.syncPolicy.syncOptions | nindent 6 }}
+      {{- else }}
+      - CreateNamespace=true
+      - ServerSideApply=true
+      {{- end }}
+
+  {{- if $addonValues.ignoreDifferences }}
+  ignoreDifferences:
+    {{- toYaml $addonValues.ignoreDifferences | nindent 4 }}
+  {{- end }}
+{{- end }}
+
+{{- /* Criar projeto global sempre */ -}}
+{{- if .Values.createProject }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: {{ .Values.global.project }}
+  namespace: {{ .Values.global.argoNamespace }}
+  labels:
+    app.kubernetes.io/part-of: homelab
+spec:
+  description: "Homelab Project for all addons"
+
+  sourceRepos:
+  - 'https://charts.bitnami.com/bitnami'
+  - 'https://charts.jetstack.io'
+  - 'https://helm.releases.hashicorp.com'
+  - 'https://prometheus-community.github.io/helm-charts'
+  - 'https://kubernetes.github.io/ingress-nginx'
+  - 'https://metallb.github.io/metallb'
+  - '*'
+
+  destinations:
+  - namespace: '*'
+    server: https://kubernetes.default.svc
+
+  clusterResourceWhitelist:
+  - group: '*'
+    kind: '*'
+
+  namespaceResourceWhitelist:
+  - group: '*'
+    kind: '*'
+{{- end }}

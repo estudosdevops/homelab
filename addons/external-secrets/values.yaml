@@ -1,16 +1,55 @@
-external-secrets:
-  installCRDs: true
+# addons/external-secrets/values.yaml
+metadata:
+  annotations:
+    app.kubernetes.io/description: "External Secrets Operator para integração com Vault"
+    argocd.argoproj.io/sync-wave: "1"
 
-  replicaCount: 1
+# Project específico (opcional, se não definir usa o global)
+project: external-secrets
 
-  serviceMonitor:
-    enabled: false
+chart:
+  repository: https://charts.external-secrets.io
+  name: external-secrets
+  version: "0.19.2"
 
-  controller:
-    logLevel: info
+destination:
+  namespace: external-secrets
 
-  webhook:
-    logLevel: info
+syncPolicy:
+  automated:
+    prune: true
+    selfHeal: true
+  syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
 
-  certController:
-    logLevel: info
+helm:
+  values:
+    installCRDs: true
+    replicaCount: 1
+
+    serviceMonitor:
+      enabled: false
+
+    controller:
+      logLevel: info
+
+    webhook:
+      logLevel: info
+
+    certController:
+      logLevel: info
+
+    # Configuração específica para ClusterSecretStore
+    externalSecrets:
+      enabled: true
+      vault:
+        server: "http://vault.vault.svc.cluster.local:8200"
+        token: ""  # ⚠️ Configurar com token real para DEV/TESTE (não commitar)
+      environments:
+        - name: stg
+          path: "stg"
+        - name: sdx
+          path: "sdx"
+        - name: prod
+          path: "prod"
