@@ -47,6 +47,12 @@ server:
   ingress:
     enabled: true
     ingressClassName: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: homelab-ca-issuer
+    extraTls:
+      - hosts:
+        - argocd.homelab.tech
+        secretName: wildcard-tls
 
   extensions:
     enabled: true

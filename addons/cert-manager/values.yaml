@@ -1,0 +1,84 @@
+# addons/cert-manager/values.yaml
+metadata:
+  annotations:
+    app.kubernetes.io/description: "Cert-Manager completo com CA, ClusterIssuer e Wildcard"
+    argocd.argoproj.io/sync-wave: "0"
+
+# Project específico (opcional, se não definir usa o global)
+project: cert-manager
+
+chart:
+  repository: https://charts.jetstack.io
+  name: cert-manager
+  version: "v1.18.2"
+
+destination:
+  namespace: cert-manager
+
+syncPolicy:
+  automated:
+    prune: true
+    selfHeal: true
+  syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+
+helm:
+  values:
+    installCRDs: true
+
+    prometheus:
+      enabled: false
+
+    extraObjects:
+      - |
+        apiVersion: cert-manager.io/v1
+        kind: ClusterIssuer
+        metadata:
+          name: selfsigned-issuer
+        spec:
+          selfSigned: {}
+      - |
+        apiVersion: cert-manager.io/v1
+        kind: Certificate
+        metadata:
+          name: homelab-ca
+          namespace: cert-manager
+        spec:
+          isCA: true
+          commonName: "Homelab Root CA"
+          subject:
+            organizations:
+              - "Homelab"
+          secretName: homelab-ca
+          privateKey:
+            algorithm: ECDSA
+            size: 256
+          issuerRef:
+            name: selfsigned-issuer
+            kind: ClusterIssuer
+      - |
+        apiVersion: cert-manager.io/v1
+        kind: ClusterIssuer
+        metadata:
+          name: homelab-ca-issuer
+        spec:
+          ca:
+            secretName: homelab-ca
+      - |
+        apiVersion: cert-manager.io/v1
+        kind: Certificate
+        metadata:
+          name: wildcard-cert
+          namespace: cert-manager
+        spec:
+          secretName: wildcard-tls
+          commonName: "*.homelab.tech"
+          dnsNames:
+            - "*.homelab.tech"
+            - "homelab.tech"
+          duration: 8760h
+          renewBefore: 720h
+          issuerRef:
+            name: homelab-ca-issuer
+            kind: ClusterIssuer

@@ -1,4 +1,4 @@
-.PHONY: diff lint list help status status-detailed diagnose clean backup template validate remove new install uninstall health sync
+.PHONY: diff lint list help status status-detailed diagnose clean backup template validate-templates validate-addon remove new install uninstall health sync
 
 # Cores para output
 GREEN=\033[32m
@@ -24,7 +24,8 @@ help:
 	@echo "$(YELLOW)🔧 Comandos de operação:$(NC)"
 	@echo "  $(GREEN)make health name=<addon>$(NC)      # Verificar saúde do addon"
 	@echo "  $(GREEN)make sync name=<addon>$(NC)        # Forçar sincronização"
-	@echo "  $(GREEN)make validate name=<addon>$(NC)    # Validar addon (completo)"
+	@echo "  $(GREEN)make validate-templates$(NC)       # Validar templates Helm"
+	@echo "  $(GREEN)make validate-addon name=<addon>$(NC) # Validar addon específico"
 	@echo "  $(GREEN)make template [name=<addon>]$(NC)  # Ver template gerado"
 	@echo ""
 	@echo "$(YELLOW)🔧 Comandos de desenvolvimento:$(NC)"
@@ -75,10 +76,10 @@ install:
 			exit 1; \
 		fi; \
 		echo "$(BLUE)🔍 Validando addon '$(name)'...$(NC)"; \
-		make validate name=$(name) || exit 1; \
+		make validate-addon name=$(name) || exit 1; \
 		echo "$(BLUE)🚀 Instalando addon '$(name)'...$(NC)"; \
 		helm template . --set-string enabledAddons='{$(name)}' | kubectl apply -f -; \
-		echo "$(GREEN)✅ Addon '$(name)' instalado com sucessomake(NC)"; \
+		echo "$(GREEN)✅ Addon '$(name)' instalado com sucesso...$(NC)"; \
 		make health name=$(name); \
 	fi
 
@@ -197,7 +198,7 @@ new:
 	@echo "$(YELLOW)📝 Próximos passos:$(NC)"
 	@echo "  1. $(CYAN)Editar:$(NC) addons/$(name)/values.yaml"
 	@echo "  2. $(CYAN)Configurar:$(NC) repository, name e version do chart"
-	@echo "  3. $(CYAN)Validar:$(NC) make validate name=$(name)"
+	@echo "  3. $(CYAN)Validar:$(NC) make validate-addon name=$(name)"
 	@echo "  4. $(CYAN)Instalar:$(NC) make install name=$(name)"
 
 ## 🔍 Ver diferenças
@@ -225,25 +226,25 @@ list:
 	@echo "$(PURPLE)📦 Addons disponíveis:$(NC)"
 	@ls -1 addons/ 2>/dev/null | grep -v "^_" | sed 's/^/  📦 /' || echo "  $(RED)❌ Nenhum addon encontrado$(NC)"
 
-## ✅ Validar addon específico (completo)
-validate:
+## 📄 Validar templates Helm (pasta templates/)
+validate-templates: ## 🔍 Validar templates do homelab (templates/application.yaml)
+	@echo "$(BLUE)🔍 Validando templates Helm do homelab...$(NC)"
+	@helm template homelab . --values values.yaml --dry-run > /dev/null && \
+	echo "$(GREEN)✅ Templates Helm válidos$(NC)" || \
+	(echo "$(RED)❌ Erro nos templates Helm$(NC)" && exit 1)
+	@echo "$(BLUE)🎯 Use 'make validate-addon name=<addon>' para validar addon específico$(NC)"
+
+## 🔧 Validar configuração de addon específico
+validate-addon:
 	@if [ -z "$(name)" ]; then \
-		echo "$(RED)❌ Uso: make validate name=<addon>$(NC)"; \
-		make list; \
+		echo "$(RED)❌ Uso: make validate-addon name=<nome-do-addon>$(NC)"; \
+		echo "$(BLUE)📋 Addons disponíveis:$(NC)"; \
+		for addon in $$(ls -1 addons/ | grep -v "bases\|releases"); do \
+			echo "  $(GREEN)- $$addon$(NC)"; \
+		done; \
 		exit 1; \
 	fi
-	@echo "$(BLUE)🔍 Validando addon '$(name)'...$(NC)"
-	@if [ ! -d "addons/$(name)" ]; then \
-		echo "$(RED)❌ Diretório do addon não encontrado$(NC)"; \
-		exit 1; \
-	fi
-	@if [ ! -f "addons/$(name)/values.yaml" ]; then \
-		echo "$(RED)❌ Arquivo values.yaml não encontrado$(NC)"; \
-		exit 1; \
-	fi
-	@yq eval '.' addons/$(name)/values.yaml >/dev/null 2>&1 || \
-	(echo "$(RED)❌ Arquivo values.yaml inválido$(NC)" && exit 1)
-	@echo "$(GREEN)✅ Addon '$(name)' validado com sucesso$(NC)"
+	@./scripts/validate-addon.sh $(name)
 
 ## 📄 Ver template gerado
 template:
