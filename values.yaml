@@ -17,4 +17,5 @@ enabledAddons:
   - cert-manager
   - external-secrets
   - metallb
+  - longhorn
   - ingress-nginx

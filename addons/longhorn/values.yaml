@@ -1,0 +1,104 @@
+# addons/longhorn/values.yaml
+metadata:
+  annotations:
+    app.kubernetes.io/description: "Longhorn distributed storage para homelab"
+    argocd.argoproj.io/sync-wave: "1"
+
+# Project específico (opcional, se não definir usa o global)
+project: longhorn-system
+
+chart:
+  repository: https://charts.longhorn.io
+  name: longhorn
+  version: "1.9.1"
+
+destination:
+  namespace: longhorn-system
+
+syncPolicy:
+  automated:
+    prune: true
+    selfHeal: true
+  syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+
+helm:
+  values:
+    # Longhorn UI - Interface web de gerenciamento
+    longhornUI:
+      replicas: 1
+    preUpgradeChecker:
+      jobEnabled: false
+    # CSI - Container Storage Interface controllers (otimizado para homelab)
+    csi:
+      attacherReplicaCount: 1
+      provisionerReplicaCount: 1
+      resizerReplicaCount: 1
+      snapshotterReplicaCount: 1
+
+    # Configurações de persistência e storage classes
+    persistence:
+      defaultClass: true
+      defaultClassReplicaCount: 1
+      reclaimPolicy: Retain
+
+    # Configurações globais do Longhorn
+    defaultSettings:
+      # Réplicas por volume (1 = sem redundância, adequado para homelab)
+      defaultReplicaCount: 1
+
+      # Path de armazenamento nos nodes
+      defaultDataPath: /var/lib/longhorn
+
+      # Configurações de backup (S3 opcional para configurar depois)
+      backupstorePollInterval: 300
+
+      # Performance para homelab
+      storageOverProvisioningPercentage: 200
+      storageMinimalAvailablePercentage: 25
+
+      # Upgrade automatizado
+      upgradeChecker: true
+
+      # Observabilidade
+      createDefaultDiskLabeledNodes: true
+
+    # Ingress para UI do Longhorn
+    ingress:
+      enabled: true
+      ingressClassName: nginx
+      host: "longhorn.{{ .Values.global.domain }}"
+      tlsSecret: "{{ .Values.global.tls.secretName }}"
+      annotations:
+        cert-manager.io/cluster-issuer: "{{ .Values.global.tls.clusterIssuer }}"
+
+    # Recursos otimizados para homelab
+    longhornManager:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 128Mi
+        limits:
+          cpu: 200m
+          memory: 512Mi
+
+    longhornDriver:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 200m
+          memory: 256Mi
+
+    # Configurações de node e disco
+    nodeSelector: {}
+    tolerations: []
+
+    # Configurações de segurança
+    enablePSP: false  # Pod Security Policy não necessário no K3s moderno
+
+    # Configurações de observabilidade
+    serviceMonitor:
+      enabled: false  # Habilitar quando Prometheus estiver migrado
