@@ -1,4 +1,3 @@
-# addons/cert-manager/values.yaml
 metadata:
   annotations:
     app.kubernetes.io/description: "Cert-Manager completo com CA, ClusterIssuer e Wildcard"

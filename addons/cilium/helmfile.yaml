@@ -1,6 +1,6 @@
 ---
 bases:
-  - "../../bases/helmDefaults.yaml"
+  - "../bases/helmDefaults.yaml"
 
 ---
 repositories:
@@ -11,10 +11,10 @@ releases:
   - name: cilium
     namespace: kube-system
     chart: cilium/cilium
-    version: ~1.17.3
+    version: ~1.18.1
     installed: true
     labels:
-      tier:  cilium
+      tier: cilium
     values:
       - values/values.yaml.gotmpl
     disableValidationOnInstall: true

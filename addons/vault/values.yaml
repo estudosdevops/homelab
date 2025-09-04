@@ -1,4 +1,3 @@
-# addons/vault/values.yaml
 metadata:
   annotations:
     app.kubernetes.io/description: "HashiCorp Vault para secrets management"

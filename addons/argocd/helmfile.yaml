@@ -1,6 +1,6 @@
 ---
 bases:
-  - "../../bases/helmDefaults.yaml"
+  - "../bases/helmDefaults.yaml"
 
 ---
 repositories:
@@ -11,7 +11,7 @@ releases:
   - name: argocd
     namespace: argocd
     chart: argo/argo-cd
-    version: ~8.3.0
+    version: ~8.3.3
     installed: true
     labels:
       tier: deploy
@@ -22,7 +22,7 @@ releases:
   - name: argo-rollouts
     namespace: argo-rollouts
     chart: argo/argo-rollouts
-    version: ~2.39.0
+    version: ~2.40.3
     installed: true
     labels:
       tier: rollouts
