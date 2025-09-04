@@ -7,9 +7,11 @@ source "scripts/lib/common.sh"
 # =============================================================================
 # Configurações
 # =============================================================================
+# shellcheck disable=SC2155
 readonly SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+# shellcheck disable=SC2155
 readonly PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-readonly RELEASES_DIR="${PROJECT_ROOT}/addons/releases"
+readonly RELEASES_DIR="${PROJECT_ROOT}/addons"
 readonly KUBECONFIG_FILE="${PROJECT_ROOT}/kubeconfig.yaml"
 
 # =============================================================================

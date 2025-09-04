@@ -1,0 +1,124 @@
+metadata:
+  annotations:
+    app.kubernetes.io/description: "Kube Prometheus Stack - Observabilidade completa para homelab"
+    argocd.argoproj.io/sync-wave: "3"
+
+# Project específico (opcional, se não definir usa o global)
+project: monitoring-system
+
+chart:
+  repository: https://prometheus-community.github.io/helm-charts
+  name: kube-prometheus-stack
+  version: "77.5.0"
+
+destination:
+  namespace: monitoring-system
+
+syncPolicy:
+  automated:
+    prune: true
+    selfHeal: true
+  syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+
+helm:
+  values:
+    nameOverride: kube-prometheus-stack
+
+    prometheusOperator:
+      enabled: true
+      logFormat: json
+
+    prometheus:
+      enabled: true
+      prometheusSpec:
+        scrapeInterval: 30s
+        evaluationInterval: 30s
+        retention: 15d
+        retentionSize: "9GB"
+
+        ruleSelectorNilUsesHelmValues: false
+        serviceMonitorSelectorNilUsesHelmValues: false
+        podMonitorSelectorNilUsesHelmValues: false
+        probeSelectorNilUsesHelmValues: false
+
+        storageSpec:
+          volumeClaimTemplate:
+            spec:
+              accessModes: ["ReadWriteOnce"]
+              storageClassName: "{{ .Values.global.storageClass }}"
+              resources:
+                requests:
+                  storage: 10Gi
+
+        serviceAccount:
+          create: true
+          name: prometheus
+
+    grafana:
+      enabled: true
+
+      admin:
+        existingSecret: grafana-admin
+        userKey: username
+        passwordKey: password
+
+      persistence:
+        enabled: true
+        type: pvc
+        storageClassName: "{{ .Values.global.storageClass }}"
+        size: 1Gi
+        accessModes:
+          - ReadWriteOnce
+
+      ingress:
+        enabled: true
+        ingressClassName: nginx
+        hosts:
+          - "grafana.{{ .Values.global.domain }}"
+        tls:
+          - secretName: "{{ .Values.global.tls.secretName }}"
+            hosts:
+              - "grafana.{{ .Values.global.domain }}"
+        annotations:
+          cert-manager.io/cluster-issuer: "{{ .Values.global.tls.clusterIssuer }}"
+
+      defaultDashboardsEnabled: true
+      defaultDashboardsTimezone: America/Sao_Paulo
+
+      plugins:
+        - grafana-piechart-panel
+        - grafana-worldmap-panel
+        - grafana-clock-panel
+
+      extraObjects:
+        - apiVersion: external-secrets.io/v1
+          kind: ExternalSecret
+          metadata:
+            name: grafana-admin
+            namespace: monitoring-system
+          spec:
+            refreshInterval: 15s
+            secretStoreRef:
+              name: vault-backend-stg
+              kind: ClusterSecretStore
+            target:
+              name: grafana-admin
+              creationPolicy: Owner
+            dataFrom:
+              - extract:
+                  key: grafana
+
+    alertmanager:
+      enabled: false
+
+    nodeExporter:
+      enabled: true
+
+    kubeStateMetrics:
+      enabled: true
+
+    prometheus-node-exporter:
+      hostRootFsMount:
+        enabled: false

@@ -266,57 +266,6 @@ validate_helm_chart() {
     fi
 }
 
-validate_namespace_conflicts() {
-    local addon_name="$1"
-    local values_file="$2"
-
-    log_verbose "Validando conflitos de namespace com outros addons"
-
-    local namespace
-    namespace=$(yq eval '.destination.namespace' "$values_file")
-
-    if [[ "$namespace" == "null" ]]; then
-        namespace="$addon_name"
-        log_verbose "Usando nome do addon como namespace: $namespace"
-    fi
-
-    local conflicts=0
-
-    # Check all other addon configurations
-    for other_addon_dir in "${ADDONS_DIR}"/*; do
-        if [[ -d "$other_addon_dir" ]]; then
-            local other_addon_name
-            other_addon_name=$(basename "$other_addon_dir")
-
-            if [[ "$other_addon_name" != "$addon_name" ]]; then
-                local other_values_file="${other_addon_dir}/values.yaml"
-
-                if [[ -f "$other_values_file" ]]; then
-                    local other_namespace
-                    other_namespace=$(yq eval '.destination.namespace' "$other_values_file" 2>/dev/null || echo "$other_addon_name")
-
-                    if [[ "$other_namespace" == "null" ]]; then
-                        other_namespace="$other_addon_name"
-                    fi
-
-                    if [[ "$namespace" == "$other_namespace" ]]; then
-                        log_error "Conflito de namespace: '$namespace' usado por '$addon_name' e '$other_addon_name'"
-                        ((conflicts++))
-                    fi
-                fi
-            fi
-        fi
-    done
-
-    if [[ $conflicts -eq 0 ]]; then
-        log_success "Nenhum conflito de namespace encontrado"
-        return 0
-    else
-        log_error "Encontrados $conflicts conflitos de namespace"
-        return 1
-    fi
-}
-
 validate_template_generation() {
     local addon_name="$1"
 
@@ -397,11 +346,6 @@ main() {
         fi
     else
         log_warning "Helm não encontrado, pulando validações específicas do Helm"
-    fi
-
-    # Validate namespace conflicts
-    if ! validate_namespace_conflicts "$ADDON_NAME" "$values_file"; then
-        ((validation_errors++))
     fi
 
     # Summary

@@ -13,6 +13,12 @@ global:
 createProject: true
 
 enabledAddons:
-  - vault
   - cert-manager
+  - metallb
+  - ingress-nginx
+  - longhorn
+  - vault
   - external-secrets
+  - pihole
+  - kube-prometheus-stack
+  - loki

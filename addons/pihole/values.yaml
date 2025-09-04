@@ -1,0 +1,87 @@
+metadata:
+  annotations:
+    app.kubernetes.io/description: "Pi-hole DNS sinkhole e ad-blocker para homelab"
+    argocd.argoproj.io/sync-wave: "2"
+
+# Project específico (opcional, se não definir usa o global)
+project: pihole-system
+
+chart:
+  repository: https://mojo2600.github.io/pihole-kubernetes
+  name: pihole
+  version: "2.34.0"
+
+destination:
+  namespace: pihole-system
+
+syncPolicy:
+  automated:
+    prune: true
+    selfHeal: true
+  syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+
+helm:
+  values:
+    replicaCount: 1
+
+    admin:
+      existingSecret: "pihole-admin"
+      passwordKey: "admin_password"
+
+    serviceWeb:
+      loadBalancerIP: 192.168.15.102
+      annotations:
+        metallb.universe.tf/allow-shared-ip: pihole-svc
+      type: ClusterIP
+
+    serviceDns:
+      loadBalancerIP: 192.168.15.102
+      annotations:
+        metallb.universe.tf/allow-shared-ip: pihole-svc
+      type: LoadBalancer
+
+    persistentVolumeClaim:
+      enabled: true
+      size: 1Gi
+
+    serviceDhcp:
+      enabled: false
+
+    podDnsConfig:
+      enabled: false
+
+    dnsmasq:
+      customDnsEntries:
+        - address=/.homelab.tech/192.168.15.101
+
+    ingress:
+      enabled: true
+      ingressClassName: nginx
+      hosts:
+        - "pihole.{{ .Values.global.domain }}"
+      tls:
+        - secretName: "{{ .Values.global.tls.secretName }}"
+          hosts:
+            - "pihole.{{ .Values.global.domain }}"
+      annotations:
+        cert-manager.io/cluster-issuer: "{{ .Values.global.tls.clusterIssuer }}"
+
+    extraObjects:
+      - apiVersion: external-secrets.io/v1
+        kind: ExternalSecret
+        metadata:
+          name: pihole-admin
+          namespace: pihole-system
+        spec:
+          refreshInterval: 15s
+          secretStoreRef:
+            name: vault-backend-stg
+            kind: ClusterSecretStore
+          target:
+            name: pihole-admin
+            creationPolicy: Owner
+          dataFrom:
+            - extract:
+                key: pihole

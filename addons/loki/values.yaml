@@ -1,0 +1,140 @@
+metadata:
+  annotations:
+    app.kubernetes.io/description: "Loki log aggregation - Logs centralizados para homelab"
+    argocd.argoproj.io/sync-wave: "3"
+
+# Project específico (opcional, se não definir usa o global)
+project: monitoring-system
+
+chart:
+  repository: https://grafana.github.io/helm-charts
+  name: loki
+  version: "6.38.0"
+
+destination:
+  namespace: monitoring-system
+
+syncPolicy:
+  automated:
+    prune: true
+    selfHeal: true
+  syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+
+helm:
+  values:
+    deploymentMode: SingleBinary
+
+    loki:
+      auth_enabled: false
+
+      storage:
+        type: 'filesystem'
+
+      commonConfig:
+        replication_factor: 1
+
+      limits_config:
+        retention_period: 168h
+        ingestion_rate_mb: 32
+        ingestion_burst_size_mb: 64
+
+      compactor:
+        working_directory: /var/loki/compactor
+        compaction_interval: 10m
+        retention_enabled: true
+        retention_delete_delay: 2h
+        delete_request_store: filesystem
+
+      structuredConfig:
+        ingester:
+          chunk_idle_period: 3m
+          chunk_retain_period: 1m
+
+        schema_config:
+          configs:
+            - from: 2024-04-01
+              store: tsdb
+              object_store: filesystem
+              schema: v13
+              index:
+                prefix: index_
+                period: 24h
+
+    singleBinary:
+      replicas: 1
+
+      persistence:
+        enabled: true
+        size: 5Gi
+        storageClass: "{{ .Values.global.storageClass }}"
+        accessModes:
+          - ReadWriteOnce
+
+      service:
+        type: ClusterIP
+        port: 3100
+
+    gateway:
+      enabled: false
+    backend:
+      replicas: 0
+    read:
+      replicas: 0
+    write:
+      replicas: 0
+    ingester:
+      enabled: false
+    distributor:
+      enabled: false
+    querier:
+      enabled: false
+    queryFrontend:
+      enabled: false
+
+    lokiCanary:
+      enabled: false
+
+    test:
+      enabled: false
+
+    monitoring:
+      serviceMonitor:
+        enabled: true
+        labels:
+          app: loki
+          tier: monitoring
+      rules:
+        enabled: true
+        alerting: true
+      alerts:
+        enabled: true
+      selfMonitoring:
+        enabled: false
+        lokiCanary:
+          enabled: false
+
+    extraObjects:
+      - apiVersion: v1
+        kind: ConfigMap
+        metadata:
+          name: loki-datasource
+          namespace: monitoring-system
+          labels:
+            grafana_datasource: "1"
+        data:
+          datasource.yaml: |
+            apiVersion: 1
+            datasources:
+              - name: Loki
+                type: loki
+                access: proxy
+                url: http://loki:3100     # Service interno do Loki
+                isDefault: false
+                jsonData:
+                  maxLines: 1000          # Máximo de linhas por query
+                  timeout: 60s            # Timeout das queries
+                  keepCookies: []
+                editable: true
+                version: 1

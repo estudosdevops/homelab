@@ -1,0 +1,51 @@
+metadata:
+  annotations:
+    app.kubernetes.io/description: "Longhorn distributed storage para homelab"
+    argocd.argoproj.io/sync-wave: "1"
+
+# Project específico (opcional, se não definir usa o global)
+project: longhorn-system
+
+chart:
+  repository: https://charts.longhorn.io
+  name: longhorn
+  version: "1.9.1"
+
+destination:
+  namespace: longhorn-system
+
+syncPolicy:
+  automated:
+    prune: true
+    selfHeal: true
+  syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+
+helm:
+  values:
+    longhornUI:
+      replicas: 1
+
+    preUpgradeChecker:
+      jobEnabled: false
+
+    csi:
+      attacherReplicaCount: 1
+      provisionerReplicaCount: 1
+      resizerReplicaCount: 1
+      snapshotterReplicaCount: 1
+
+    persistence:
+      defaultClassReplicaCount: 1
+
+    defaultSettings:
+      defaultReplicaCount: 1
+
+    ingress:
+      enabled: true
+      ingressClassName: nginx
+      host: "longhorn.{{ .Values.global.domain }}"
+      tls: true
+      annotations:
+        cert-manager.io/cluster-issuer: "{{ .Values.global.tls.clusterIssuer }}"

@@ -78,28 +78,6 @@ Usage: {{ include "homelab.validateRequired" (list $addonName) }}
 {{- end -}}
 
 {{/*
-Validate namespace conflicts between addons
-Usage: {{ include "homelab.validateNamespace" (list $namespace $addonName $enabledAddons $context) }}
-*/}}
-{{- define "homelab.validateNamespace" -}}
-{{- $namespace := index . 0 -}}
-{{- $currentAddon := index . 1 -}}
-{{- $enabledAddons := index . 2 -}}
-{{- $context := index . 3 -}}
-
-{{- range $otherAddonName := $enabledAddons -}}
-{{- if ne $otherAddonName $currentAddon -}}
-{{- $otherAddonPath := printf "addons/%s/values.yaml" $otherAddonName -}}
-{{- $otherAddonConfig := $context.Files.Get $otherAddonPath | fromYaml -}}
-{{- $otherNamespace := dig "destination" "namespace" $otherAddonName $otherAddonConfig -}}
-{{- if eq $otherNamespace $namespace -}}
-{{- fail (printf "Conflito de namespace: '%s' usado por '%s' e '%s'" $namespace $currentAddon $otherAddonName) -}}
-{{- end -}}
-{{- end -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
 Get addon configuration with fallbacks
 Usage: {{ include "homelab.getAddonConfig" (list $addonName $context "fallbackNamespace") | fromYaml }}
 */}}

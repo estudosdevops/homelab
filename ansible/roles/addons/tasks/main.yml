@@ -39,9 +39,9 @@
     - addons
     - never
 
-- name: Install or update release metallb
+- name: Install or update release argocd
   ansible.builtin.command:
-    cmd: "{{ playbook_dir }}/../../scripts/helmfile-releases.sh metallb --auto-apply"
+    cmd: "{{ playbook_dir }}/../../scripts/helmfile-releases.sh argocd --auto-apply"
     chdir: "{{ playbook_dir }}/../.."
   register: helmfile_single_result
   changed_when: helmfile_single_result.rc == 0

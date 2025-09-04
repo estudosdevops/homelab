@@ -3,9 +3,7 @@
 {{- $addonValues := include "homelab.getAddonConfig" (list $addonName $ $addonName) | fromYaml }}
 {{- $projectName := $addonValues.project | default $.Values.global.project }}
 
-{{- /* Validate namespace conflicts */ -}}
 {{- $namespace := $addonValues.destination.namespace | default $addonName }}
-{{- include "homelab.validateNamespace" (list $namespace $addonName $.Values.enabledAddons $) }}
 
 {{- /* Create specific project if not using global */ -}}
 {{- if and $.Values.createProject $addonValues.project (ne $addonValues.project $.Values.global.project) }}

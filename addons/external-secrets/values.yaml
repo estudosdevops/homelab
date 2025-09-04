@@ -1,4 +1,3 @@
-# addons/external-secrets/values.yaml
 metadata:
   annotations:
     app.kubernetes.io/description: "External Secrets Operator para integração com Vault"
