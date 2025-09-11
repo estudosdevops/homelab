@@ -1,0 +1,38 @@
+{{/*
+AppProjects Template - Dynamic project creation based on addon configuration
+Creates projects automatically based on project name defined in addon values
+*/}}
+
+{{/* Create AppProjects dynamically for each enabled addon */}}
+{{- range $addonName := .Values.enabledAddons }}
+{{- $addonValues := include "homelab.getAddonConfig" (list $addonName $ $addonName) | fromYaml }}
+{{- $projectName := $addonValues.project | default $.Values.global.project }}
+
+{{/* Create project with dynamic name - reuses existing projects with same name */}}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: {{ $projectName }}
+  namespace: {{ $.Values.global.argoNamespace }}
+  labels:
+    app.kubernetes.io/part-of: homelab
+    app.kubernetes.io/component: {{ $projectName }}
+spec:
+  description: "Project for {{ $projectName }}"
+
+  sourceRepos:
+  - '*'
+
+  destinations:
+  - namespace: '*'
+    server: https://kubernetes.default.svc
+
+  clusterResourceWhitelist:
+  - group: '*'
+    kind: '*'
+
+  namespaceResourceWhitelist:
+  - group: '*'
+    kind: '*'
+{{- end }}
