@@ -5,43 +5,6 @@
 
 {{- $namespace := $addonValues.destination.namespace | default $addonName }}
 
-{{- /* Create specific project if not using global */ -}}
-{{- if and $.Values.createProject $addonValues.project (ne $addonValues.project $.Values.global.project) }}
----
-apiVersion: argoproj.io/v1alpha1
-kind: AppProject
-metadata:
-  name: {{ $projectName }}
-  namespace: {{ $.Values.global.argoNamespace }}
-  labels:
-    app.kubernetes.io/part-of: homelab
-    app.kubernetes.io/component: {{ $addonName }}
-spec:
-  description: "Project for {{ $addonName }} addon"
-
-  sourceRepos:
-  {{- if and $addonValues.chart $addonValues.chart.repository }}
-  - '{{ $addonValues.chart.repository }}'
-  {{- else }}
-  - 'https://charts.bitnami.com/bitnami'  # fallback padrão
-  {{- end }}
-  - '*'
-
-  destinations:
-  - namespace: '{{ $addonValues.destination.namespace | default $addonName }}'
-    server: https://kubernetes.default.svc
-  - namespace: kube-system
-    server: https://kubernetes.default.svc
-
-  clusterResourceWhitelist:
-  - group: '*'
-    kind: '*'
-
-  namespaceResourceWhitelist:
-  - group: '*'
-    kind: '*'
-{{- end }}
-
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -99,39 +62,4 @@ spec:
   ignoreDifferences:
     {{- toYaml $addonValues.ignoreDifferences | nindent 4 }}
   {{- end }}
-{{- end }}
-
-{{- /* Criar projeto global sempre */ -}}
-{{- if .Values.createProject }}
----
-apiVersion: argoproj.io/v1alpha1
-kind: AppProject
-metadata:
-  name: {{ .Values.global.project }}
-  namespace: {{ .Values.global.argoNamespace }}
-  labels:
-    app.kubernetes.io/part-of: homelab
-spec:
-  description: "Homelab Project for all addons"
-
-  sourceRepos:
-  - 'https://charts.bitnami.com/bitnami'
-  - 'https://charts.jetstack.io'
-  - 'https://helm.releases.hashicorp.com'
-  - 'https://prometheus-community.github.io/helm-charts'
-  - 'https://kubernetes.github.io/ingress-nginx'
-  - 'https://metallb.github.io/metallb'
-  - '*'
-
-  destinations:
-  - namespace: '*'
-    server: https://kubernetes.default.svc
-
-  clusterResourceWhitelist:
-  - group: '*'
-    kind: '*'
-
-  namespaceResourceWhitelist:
-  - group: '*'
-    kind: '*'
 {{- end }}
