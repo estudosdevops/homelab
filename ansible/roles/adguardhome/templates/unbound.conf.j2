@@ -1,0 +1,111 @@
+# Unbound configuration for AdGuard Home integration
+# Managed by Ansible - DO NOT EDIT MANUALLY
+
+server:
+    # Listen on localhost only (AdGuard Home will forward to this)
+    interface: {{ unbound_interface }}
+    port: {{ unbound_port }}
+
+    # Access control
+    do-ip4: yes
+    do-ip6: {{ 'yes' if unbound_enable_ipv6 else 'no' }}
+    do-udp: yes
+    do-tcp: yes
+
+    # Trust localhost queries
+    access-control: 127.0.0.0/8 allow
+    access-control: ::1 allow
+{% for network in unbound_access_control %}
+    access-control: {{ network.subnet }} {{ network.action }}
+{% endfor %}
+
+    # Performance tuning
+    num-threads: {{ unbound_num_threads }}
+    msg-cache-slabs: {{ unbound_msg_cache_slabs }}
+    rrset-cache-slabs: {{ unbound_rrset_cache_slabs }}
+    infra-cache-slabs: {{ unbound_infra_cache_slabs }}
+    key-cache-slabs: {{ unbound_key_cache_slabs }}
+
+    # Cache settings
+    rrset-cache-size: {{ unbound_rrset_cache_size }}
+    msg-cache-size: {{ unbound_msg_cache_size }}
+    outgoing-range: {{ unbound_outgoing_range }}
+    num-queries-per-thread: {{ unbound_num_queries_per_thread }}
+
+    # Privacy settings
+    hide-identity: {{ 'yes' if unbound_hide_identity else 'no' }}
+    hide-version: {{ 'yes' if unbound_hide_version else 'no' }}
+
+    # Security
+    harden-glue: {{ 'yes' if unbound_harden_glue else 'no' }}
+    harden-dnssec-stripped: {{ 'yes' if unbound_harden_dnssec_stripped else 'no' }}
+    harden-below-nxdomain: {{ 'yes' if unbound_harden_below_nxdomain else 'no' }}
+    harden-referral-path: {{ 'yes' if unbound_harden_referral_path else 'no' }}
+
+    # DNSSEC (usando trust anchors builtin)
+{% if unbound_enable_dnssec %}
+    auto-trust-anchor-file: "/var/lib/unbound/root.key"
+{% endif %}
+    val-clean-additional: {{ 'yes' if unbound_enable_dnssec else 'no' }}
+
+    # Prefetch
+    prefetch: {{ 'yes' if unbound_prefetch else 'no' }}
+    prefetch-key: {{ 'yes' if unbound_prefetch_key else 'no' }}
+
+    # Root hints
+{% if unbound_download_root_hints %}
+    root-hints: "{{ unbound_root_hints_file }}"
+{% endif %}
+
+    # Logging
+    verbosity: {{ unbound_verbosity }}
+    logfile: "{{ unbound_log_file }}"
+    log-queries: {{ 'yes' if unbound_log_queries else 'no' }}
+    log-replies: {{ 'yes' if unbound_log_replies else 'no' }}
+    log-time-ascii: yes
+
+    # TTL settings
+    cache-min-ttl: {{ unbound_cache_min_ttl }}
+    cache-max-ttl: {{ unbound_cache_max_ttl }}
+
+    # Private domains (RFC1918 reverse lookups)
+    private-address: 10.0.0.0/8
+    private-address: 172.16.0.0/12
+    private-address: 192.168.0.0/16
+    private-address: 169.254.0.0/16
+    private-address: fd00::/8
+    private-address: fe80::/10
+
+{% if unbound_local_zone is defined and unbound_local_zone %}
+    # Local domain
+    local-zone: "{{ unbound_local_zone }}" transparent
+{% endif %}
+
+{% if unbound_local_data is defined and unbound_local_data | length > 0 %}
+    # Local DNS records
+{% for record in unbound_local_data %}
+    local-data: "{{ record }}"
+{% endfor %}
+{% endif %}
+
+{% if unbound_stub_zones is defined and unbound_stub_zones | length > 0 %}
+# Stub zones for private DNS
+{% for zone in unbound_stub_zones %}
+stub-zone:
+    name: "{{ zone.name }}"
+{% for server in zone.servers %}
+    stub-addr: {{ server }}
+{% endfor %}
+{% endfor %}
+{% endif %}
+
+{% if unbound_forward_zones is defined and unbound_forward_zones | length > 0 %}
+# Forward zones
+{% for zone in unbound_forward_zones %}
+forward-zone:
+    name: "{{ zone.name }}"
+{% for server in zone.servers %}
+    forward-addr: {{ server }}
+{% endfor %}
+{% endfor %}
+{% endif %}

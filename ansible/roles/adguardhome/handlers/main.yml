@@ -1,0 +1,10 @@
+---
+- name: restart adguardhome
+  ansible.builtin.service:
+    name: "{{ adguardhome_daemon }}"
+    state: restarted
+
+- name: restart unbound
+  ansible.builtin.service:
+    name: unbound
+    state: restarted

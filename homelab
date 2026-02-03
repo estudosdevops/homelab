@@ -8,7 +8,7 @@ source "scripts/lib/common.sh"
 readonly ANSIBLE_DIR="ansible"
 readonly PLAYBOOKS_DIR="${ANSIBLE_DIR}/playbooks"
 readonly INVENTORIES_DIR="${ANSIBLE_DIR}/inventories"
-readonly DEFAULT_INVENTORY="k3s"
+readonly DEFAULT_INVENTORY="hosts"
 
 # Logging functions
 log_playbook_info() {

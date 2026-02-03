@@ -1,0 +1,27 @@
+---
+- name: Install Unbound
+  ansible.builtin.include_tasks: unbound.yml
+  when: unbound_enabled
+  tags:
+    - unbound
+    - install
+
+- name: Install AdGuard Home
+  ansible.builtin.include_tasks: adguardhome.yml
+  tags:
+    - install
+
+- name: Configure AdGuard Home
+  ansible.builtin.include_tasks: configure.yml
+  when: adguardhome_manage_config
+  tags:
+    - config
+
+- name: Ensure AdGuardHome is started and enabled on boot.
+  ansible.builtin.service:
+    name: "{{ adguardhome_daemon }}"
+    state: started
+    enabled: true
+  tags:
+    - install
+    - config
