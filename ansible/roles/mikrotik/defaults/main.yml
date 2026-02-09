@@ -1,0 +1,77 @@
+---
+# Credentials (use vault for production)
+mikrotik_api_user: admin
+mikrotik_api_password: ""
+
+# System
+mikrotik_identity: "RB_HOME"
+
+# PPPoE WAN
+mikrotik_pppoe:
+  enabled: true
+  interface: ether1
+  name: "pppoe-vivo"
+  user: ""
+  password: ""
+
+# Bridges
+mikrotik_bridges:
+  - name: "home"
+    ports:
+      - ether2
+      - ether3
+      - ether4
+  - name: "homelab"
+    ports:
+      - ether5
+
+# Networks
+mikrotik_networks:
+  - name: home
+    bridge: "home"
+    network: "192.168.10.0/24"
+    gateway: "192.168.10.1/24"
+    dhcp:
+      enabled: true
+      pool_start: "192.168.10.11"
+      pool_end: "192.168.10.254"
+      dns: "192.168.10.2"
+  - name: homelab
+    bridge: "homelab"
+    network: "192.168.20.0/24"
+    gateway: "192.168.20.1/24"
+    dhcp:
+      enabled: true
+      pool_start: "192.168.20.61"
+      pool_end: "192.168.20.254"
+      dns: "1.1.1.1"
+
+# Network access rules
+mikrotik_network_access: []
+  # Specific IPs from Home network that can access Homelab
+  # - src_network: home
+  #   src_ips:
+  #     - 192.168.10.51
+  #   dst_network: homelab
+  #   action: accept
+  #   comment: "Allowed Home IPs to Homelab"
+  # # Homelab can access Home
+  # - src_network: homelab
+  #   dst_network: home
+  #   action: accept
+  #   comment: "Homelab to Home"
+
+# Port forwards
+mikrotik_port_forwards: []
+#  - protocol: tcp
+#    dst_port: 443
+#    to_address: 192.168.20.100
+#    to_port: 443
+#    comment: "HTTPS to Homelab"
+
+# DNS Configuration
+mikrotik_dns:
+  servers:
+    - "192.168.10.2"
+  allow_remote_requests: false
+  cache_size: 4096  # KiB

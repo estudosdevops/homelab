@@ -1,0 +1,47 @@
+---
+mikrotik_identity: "RB_HOME"
+
+# Customize bridges according to your physical ports
+mikrotik_bridges:
+  - name: "home"
+    ports:
+      - ether2
+      - ether3
+      - ether4
+  - name: "homelab"
+    ports:
+      - ether5
+
+# PPPoE configuration (use vault for password)
+mikrotik_pppoe:
+  enabled: true
+  interface: ether1
+  name: "pppoe-vivo"
+  user: "fdcc.8654"
+  password: "{{ mikrotik_pppoe_password }}"
+
+# Allowed IPs from Home to access Homelab
+# mikrotik_network_access:
+#   - src_network: home
+#     src_ips:
+#       - 192.168.10.51
+#     dst_network: homelab
+#     action: accept
+#     comment: "Allowed Home IPs to Homelab"
+#   - src_network: homelab
+#     dst_network: home
+#     action: accept
+#     comment: "Homelab to Home"
+
+# Port forwards to your K3s cluster
+# mikrotik_port_forwards:
+#   - protocol: tcp
+#     dst_port: 443
+#     to_address: 192.168.20.105
+#     to_port: 443
+#     comment: "HTTPS to K3s Control Plane"
+#   - protocol: tcp
+#     dst_port: 80
+#     to_address: 192.168.20.105
+#     to_port: 80
+#     comment: "HTTP to K3s Control Plane"

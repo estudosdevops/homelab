@@ -1,12 +1,11 @@
 # Description: Install adguardhome Raspberry pi Zero 2w
 ---
 - name: Install adguardhome on Raspberry
-  hosts: raspberry
+  hosts: raspberrypi
   gather_facts: true
-  become: yes
   roles:
     - adguardhome
   vars:
     adguardhome_users:
       - username: admin
-        password: 'encrypted'
+        password: "{{ adguardhome_admin_password }}"

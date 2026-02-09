@@ -1,0 +1,29 @@
+---
+- name: Create bridges
+  community.routeros.api_modify:
+    path: interface bridge
+    data:
+      - name: "{{ item.name }}"
+        comment: "Bridge {{ item.name }}"
+  loop: "{{ mikrotik_bridges }}"
+
+- name: Add ports to bridges
+  community.routeros.api_modify:
+    path: interface bridge port
+    data:
+      - interface: "{{ port }}"
+        bridge: "{{ item.0.name }}"
+  loop: "{{ mikrotik_bridges | subelements('ports') }}"
+  loop_control:
+    loop_var: item
+  vars:
+    port: "{{ item.1 }}"
+
+- name: Configure IP addresses on bridges
+  community.routeros.api_modify:
+    path: ip address
+    data:
+      - address: "{{ item.gateway }}"
+        interface: "{{ item.bridge }}"
+        comment: "{{ item.name }}"
+  loop: "{{ mikrotik_networks }}"

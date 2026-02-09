@@ -1,0 +1,15 @@
+# Python dependencies for Ansible playbooks
+# Install with: pip3 install -r requirements.txt
+
+# Core Ansible
+ansible>=2.14,<3.0
+
+# Required for community.routeros collection
+librouteros>=3.2.0
+
+# Required for ansible.utils collection (IP address manipulation)
+netaddr>=0.8.0
+
+# Optional but recommended
+# PyYAML>=6.0        # YAML parsing (usually comes with ansible)
+# Jinja2>=3.0        # Templating (usually comes with ansible)

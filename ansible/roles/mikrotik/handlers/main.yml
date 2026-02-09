@@ -1,0 +1,8 @@
+---
+# ansible/roles/mikrotik/handlers/main.yml
+
+- name: Reboot MikroTik
+  community.routeros.command:
+    commands:
+      - /system reboot
+  listen: reboot_mikrotik
