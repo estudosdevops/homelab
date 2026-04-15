@@ -12,7 +12,7 @@ adguardhome_config_file: "{{ adguardhome_config_dir }}/AdGuardHome.yaml"
 
 adguardhome_manage_config: true
 
-adguardhome_webhost: '192.168.68.60'
+adguardhome_webhost: '192.168.10.2'
 adguardhome_webport: '3000'
 adguardhome_users: []
 adguardhome_auth_attempts: 5
@@ -21,7 +21,7 @@ adguardhome_http_proxy: '""'
 adguardhome_language: '""'
 adguardhome_web_session_ttl: 720h
 adguardhome_dnshosts:
-  - 192.168.68.60
+  - 192.168.10.2
   - 127.0.0.1
 adguardhome_dnsport: 53
 adguardhome_statistics_enabled: 'true'  # Added in 0.107.24

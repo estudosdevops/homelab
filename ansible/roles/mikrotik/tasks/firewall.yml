@@ -1,0 +1,134 @@
+---
+- name: Accept established/related connections (input)
+  community.routeros.api_modify:
+    path: ip firewall filter
+    data:
+      - chain: input
+        connection-state: established,related
+        action: accept
+        place-before: 0
+
+- name: Accept traffic from LANs (input)
+  community.routeros.api_modify:
+    path: ip firewall filter
+    data:
+      - chain: input
+        in-interface: "{{ item.bridge }}"
+        action: accept
+        comment: "Accept from {{ item.name }}"
+  loop: "{{ mikrotik_networks }}"
+
+- name: Allow ICMP (input)
+  community.routeros.api_modify:
+    path: ip firewall filter
+    data:
+      - chain: input
+        protocol: icmp
+        action: accept
+
+- name: Drop invalid traffic (input)
+  community.routeros.api_modify:
+    path: ip firewall filter
+    data:
+      - chain: input
+        connection-state: invalid
+        action: drop
+
+- name: Drop all other input traffic
+  community.routeros.api_modify:
+    path: ip firewall filter
+    data:
+      - chain: input
+        action: drop
+
+# FORWARD chain - control traffic between networks
+- name: Accept established/related connections (forward)
+  community.routeros.api_modify:
+    path: ip firewall filter
+    data:
+      - chain: forward
+        connection-state: established,related
+        action: accept
+        place-before: 0
+
+- name: Drop invalid traffic (forward)
+  community.routeros.api_modify:
+    path: ip firewall filter
+    data:
+      - chain: forward
+        connection-state: invalid
+        action: drop
+
+# Allow all networks to Internet
+- name: Allow networks to Internet
+  community.routeros.api_modify:
+    path: ip firewall filter
+    data:
+      - chain: forward
+        src-address: "{{ item.network }}"
+        out-interface: "{{ mikrotik_pppoe.name }}"
+        action: accept
+        comment: "{{ item.name | upper }} to Internet"
+  loop: "{{ mikrotik_networks }}"
+
+# Custom network access rules
+- name: Process network access rules with specific IPs
+  when: item.src_ips is defined
+  block:
+    - name: Create address list for specific IPs
+      community.routeros.api_modify:
+        path: ip firewall address-list
+        data:
+          - list: "{{ item.src_network }}-to-{{ item.dst_network }}"
+            address: "{{ ip }}"
+      loop: "{{ item.src_ips }}"
+      loop_control:
+        loop_var: ip
+
+    - name: Create firewall rule for specific IPs
+      community.routeros.api_modify:
+        path: ip firewall filter
+        data:
+          - chain: forward
+            src-address-list: "{{ item.src_network }}-to-{{ item.dst_network }}"
+            dst-address: "{{ mikrotik_networks | selectattr('name', 'equalto', item.dst_network) | map(attribute='network') | first }}"
+            action: "{{ item.action }}"
+            comment: "{{ item.comment | default('Custom rule') }}"
+  loop: "{{ mikrotik_network_access }}"
+
+- name: Process network access rules (full network)
+  when: item.src_ips is not defined
+  community.routeros.api_modify:
+    path: ip firewall filter
+    data:
+      - chain: forward
+        src-address: "{{ mikrotik_networks | selectattr('name', 'equalto', item.src_network) | map(attribute='network') | first }}"
+        dst-address: "{{ mikrotik_networks | selectattr('name', 'equalto', item.dst_network) | map(attribute='network') | first }}"
+        action: "{{ item.action }}"
+        comment: "{{ item.comment | default('Custom rule') }}"
+  loop: "{{ mikrotik_network_access }}"
+
+# Block unauthorized traffic between private networks
+- name: Get list of private networks
+  ansible.builtin.set_fact:
+    private_networks: "{{ mikrotik_networks | map(attribute='network') | list }}"
+
+- name: Block unauthorized traffic between private networks
+  community.routeros.api_modify:
+    path: ip firewall filter
+    data:
+      - chain: forward
+        src-address: "{{ item.0.network }}"
+        dst-address: "{{ item.1.network }}"
+        action: drop
+        comment: "Block {{ item.0.name }} to {{ item.1.name }}"
+  loop: "{{ mikrotik_networks | product(mikrotik_networks) | list }}"
+  when: item.0.name != item.1.name
+
+# Accept remaining forward traffic
+- name: Accept remaining forward traffic
+  community.routeros.api_modify:
+    path: ip firewall filter
+    data:
+      - chain: forward
+        action: accept

@@ -1,0 +1,12 @@
+---
+- name: Configure PPPoE client
+  community.routeros.api_modify:
+    path: interface pppoe-client
+    data:
+      - name: "{{ mikrotik_pppoe.name }}"
+        interface: "{{ mikrotik_pppoe.interface }}"
+        user: "{{ mikrotik_pppoe.user }}"
+        password: "{{ mikrotik_pppoe.password }}"
+        add-default-route: "yes"
+        use-peer-dns: "no"
+        disabled: "no"

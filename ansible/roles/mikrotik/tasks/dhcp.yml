@@ -1,0 +1,31 @@
+---
+- name: Create DHCP pools
+  community.routeros.api_modify:
+    path: ip pool
+    data:
+      - name: "{{ item.name }}"
+        ranges: "{{ item.dhcp.pool_start }}-{{ item.dhcp.pool_end }}"
+  loop: "{{ mikrotik_networks }}"
+  when: item.dhcp.enabled | default(false)
+
+- name: Configure DHCP networks
+  community.routeros.api_modify:
+    path: ip dhcp-server network
+    data:
+      - address: "{{ item.network }}"
+        gateway: "{{ item.gateway | ansible.utils.ipaddr('address') }}"
+        dns-server: "{{ item.dhcp.dns }}"
+        comment: "{{ item.name }}"
+  loop: "{{ mikrotik_networks }}"
+  when: item.dhcp.enabled | default(false)
+
+- name: Create DHCP servers
+  community.routeros.api_modify:
+    path: ip dhcp-server
+    data:
+      - name: "{{ item.name }}"
+        interface: "{{ item.bridge }}"
+        address-pool: "{{ item.name }}"
+        disabled: "no"
+  loop: "{{ mikrotik_networks }}"
+  when: item.dhcp.enabled | default(false)

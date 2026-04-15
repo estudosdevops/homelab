@@ -1,0 +1,25 @@
+---
+- name: Set router identity
+  community.routeros.api_modify:
+    path: system identity
+    data:
+      - name: "{{ mikrotik_identity }}"
+
+- name: Configure DNS servers
+  community.routeros.api_modify:
+    path: ip dns
+    data:
+      - servers: "{{ mikrotik_dns.servers | join(',') }}"
+        allow-remote-requests: "{{ 'yes' if mikrotik_dns.allow_remote_requests else 'no' }}"
+        cache-size: "{{ mikrotik_dns.cache_size }}KiB"
+
+- name: Disable unused services
+  community.routeros.api_modify:
+    path: ip service
+    data:
+      - name: "{{ item }}"
+        disabled: "yes"
+  loop:
+    - telnet
+    - ftp
+    - www

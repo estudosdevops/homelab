@@ -1,0 +1,24 @@
+---
+- name: Configure NAT masquerade
+  community.routeros.api_modify:
+    path: ip firewall nat
+    data:
+      - chain: srcnat
+        out-interface: "{{ mikrotik_pppoe.name }}"
+        action: masquerade
+        comment: "NAT to Internet"
+
+# - name: Configure port forwards
+#   community.routeros.api_modify:
+#     path: ip firewall nat
+#     data:
+#       - chain: dstnat
+#         protocol: "{{ item.protocol }}"
+#         dst-port: "{{ item.dst_port }}"
+#         in-interface: "{{ mikrotik_pppoe.name }}"
+#         action: dst-nat
+#         to-addresses: "{{ item.to_address }}"
+#         to-ports: "{{ item.to_port | default(item.dst_port) }}"
+#         comment: "{{ item.comment | default('Port Forward') }}"
+#   loop: "{{ mikrotik_port_forwards }}"
+#   when: mikrotik_port_forwards | length > 0

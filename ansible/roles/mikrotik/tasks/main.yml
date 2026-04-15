@@ -1,0 +1,25 @@
+---
+- name: Configure basic system settings
+  ansible.builtin.import_tasks: system.yml
+  tags: [mikrotik, system]
+
+- name: Configure interfaces and bridges
+  ansible.builtin.import_tasks: interfaces.yml
+  tags: [mikrotik, interfaces]
+
+- name: Configure PPPoE client
+  ansible.builtin.import_tasks: pppoe.yml
+  when: mikrotik_pppoe.enabled | default(false)
+  tags: [mikrotik, pppoe]
+
+- name: Configure DHCP servers
+  ansible.builtin.import_tasks: dhcp.yml
+  tags: [mikrotik, dhcp]
+
+- name: Configure NAT rules
+  ansible.builtin.import_tasks: nat.yml
+  tags: [mikrotik, nat]
+
+# - name: Configure firewall rules
+#   ansible.builtin.import_tasks: firewall.yml
+#   tags: [mikrotik, firewall]
