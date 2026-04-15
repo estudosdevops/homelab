@@ -1,0 +1,32 @@
+# AdGuard Home systemd service
+# Managed by Ansible - DO NOT EDIT MANUALLY
+
+[Unit]
+Description=AdGuard Home: Network-level blocker
+Documentation=https://github.com/AdguardTeam/AdGuardHome/wiki
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=notify
+User={{ adguardhome_user }}
+Group={{ adguardhome_group }}
+WorkingDirectory={{ adguardhome_data_dir }}
+ExecStart={{ adguardhome_bin_file }} --no-check-update --config {{ adguardhome_config_file }} --work-dir {{ adguardhome_data_dir }}
+Restart=on-failure
+RestartSec=10s
+TimeoutStartSec=300
+TimeoutStopSec=30
+StandardOutput=journal
+StandardError=journal
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths={{ adguardhome_data_dir }} {{ adguardhome_config_dir }}
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+
+[Install]
+WantedBy=multi-user.target
