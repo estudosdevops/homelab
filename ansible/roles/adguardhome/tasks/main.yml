@@ -1,4 +1,16 @@
 ---
+- name: Configure journald
+  ansible.builtin.include_tasks: journald.yml
+  tags:
+    - journald
+    - install
+
+- name: Install log2ram
+  ansible.builtin.include_tasks: log2ram.yml
+  tags:
+    - log2ram
+    - install
+
 - name: Install Unbound
   ansible.builtin.include_tasks: unbound.yml
   when: unbound_enabled

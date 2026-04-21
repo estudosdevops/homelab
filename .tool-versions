@@ -1,5 +1,0 @@
-helm 3.17.3
-helmfile 0.171.0
-helm-diff 3.12.5
-pre-commit 4.2.0
-shellcheck 0.10.0

@@ -1,5 +1,5 @@
 ---
-adguardhome_version: 0.107.71
+adguardhome_version: 0.107.73
 adguardhome_user: adguardhome
 adguardhome_group: adguardhome
 adguardhome_daemon: adguardhome
@@ -12,179 +12,177 @@ adguardhome_config_file: "{{ adguardhome_config_dir }}/AdGuardHome.yaml"
 
 adguardhome_manage_config: true
 
-adguardhome_webhost: '192.168.10.2'
-adguardhome_webport: '3000'
+adguardhome_webhost: "192.168.10.2"
+adguardhome_webport: "3000"
 adguardhome_users: []
 adguardhome_auth_attempts: 5
 adguardhome_block_auth_min: 15
-adguardhome_http_proxy: '""'
-adguardhome_language: '""'
+adguardhome_http_proxy: "\"\""
+adguardhome_language: "\"\""
 adguardhome_web_session_ttl: 720h
 adguardhome_dnshosts:
   - 192.168.10.2
   - 127.0.0.1
 adguardhome_dnsport: 53
-adguardhome_statistics_enabled: 'true'  # Added in 0.107.24
+adguardhome_statistics_enabled: "true" # Added in 0.107.24
 adguardhome_statistics_interval: 24h
-adguardhome_statistics_ignored: []  # Added in 0.107.24
-adguardhome_querylog_enabled: 'true'
-adguardhome_querylog_file_enabled: 'true'
-adguardhome_querylog_interval: '2160h'
+adguardhome_statistics_ignored: [] # Added in 0.107.24
+adguardhome_querylog_enabled: "true"
+adguardhome_querylog_file_enabled: "true"
+adguardhome_querylog_interval: "2160h"
 adguardhome_querylog_size_memory: 1000
-adguardhome_querylog_ignored: []  # Added in 0.107.24
-adguardhome_anonymize_client_ip: 'false'
-adguardhome_protection_enabled: 'true'
-adguardhome_blocking_mode: 'default'
-adguardhome_blockingipv4: '""'
-adguardhome_blockingpiv6: '""'
+adguardhome_querylog_ignored: [] # Added in 0.107.24
+adguardhome_anonymize_client_ip: "false"
+adguardhome_protection_enabled: "true"
+adguardhome_blocking_mode: "default"
+adguardhome_blockingipv4: "\"\""
+adguardhome_blockingpiv6: "\"\""
 adguardhome_blocked_response_ttl: 10
-adguardhome_parental_block_host: 'family-block.dns.adguard.com'
-adguardhome_safebrowsing_block_host: 'standard-block.dns.adguard.com'
+adguardhome_parental_block_host: "family-block.dns.adguard.com"
+adguardhome_safebrowsing_block_host: "standard-block.dns.adguard.com"
 adguardhome_ratelimit: 0
 adguardhome_ratelimit_whitelist: []
-adguardhome_refuse_any: 'true'
+adguardhome_refuse_any: "true"
 adguardhome_upstream_dns:
-  - '127.0.0.1:5335'  # Unbound local
-  - tls://family-filter-dns.cleanbrowsing.org
-  - https://doh.cleanbrowsing.org/doh/family-filter/
-  - https://dns10.quad9.net/dns-query
-adguardhome_upstream_dns_file: '""'
-adguardhome_bootstrap_dns:
-  - '127.0.0.1:5335'
-adguardhome_fastest_timeout: '1s'
+  - "127.0.0.1:5335" # Unbound local
+adguardhome_upstream_dns_file: "\"\""
+adguardhome_bootstrap_dns: []
+adguardhome_fastest_timeout: "1s"
 adguardhome_allowed_clients: []
 adguardhome_disallowed_clients: []
 adguardhome_blocked_hosts:
-  - 'version.bind'
-  - 'id.server'
-  - 'hostname.bind'
+  - "version.bind"
+  - "id.server"
+  - "hostname.bind"
 adguardhome_trusted_proxies:
   - 127.0.0.1/8
-  - '::1/128'
+  - "::1/128"
 adguardhome_cache_size: 4194304
 adguardhome_cache_ttl_min: 3600
 adguardhome_cache_ttl_max: 86400
-adguardhome_cache_optimistic: 'true'
+adguardhome_cache_optimistic: "true"
 adguardhome_bogus_nxdomain: []
-adguardhome_aaaa_disabled: 'false'
-adguardhome_enable_dnssec: 'false'
-adguardhome_edns_client_subnet: 'false'
+adguardhome_aaaa_disabled: "false"
+adguardhome_enable_dnssec: "false"
+adguardhome_edns_client_subnet: "false"
 adguardhome_max_goroutines: 300
 adguardhome_ipset: []
-adguardhome_filtering_enabled: 'true'
+adguardhome_filtering_enabled: "true"
 adguardhome_filters_update_interval: 24
-adguardhome_parental_enabled: 'true'
-adguardhome_safesearch_enabled: 'true'
+adguardhome_parental_enabled: "false"
+adguardhome_safesearch_enabled: "false"
 adguardhome_safesearch:
-  bing: 'true'
-  duckduckgo: 'true'
-  ecosia: 'true'
-  google: 'true'
-  pixabay: 'true'
-  yandex: 'true'
-  youtube: 'true'
-adguardhome_safebrowsing_enabled: 'false'
+  bing: "true"
+  duckduckgo: "true"
+  ecosia: "true"
+  google: "true"
+  pixabay: "true"
+  yandex: "true"
+  youtube: "true"
+adguardhome_safebrowsing_enabled: "false"
 adguardhome_safebrowsing_cache_size: 1048576
 adguardhome_safeseach_cache_size: 1048576
 adguardhome_parental_cache_size: 1048576
 adguardhome_cache_time: 30
 adguardhome_rewrites: []
 adguardhome_blocked_services: []
-adguardhome_upstream_timeout: '10s'
-adguardhome_local_domain_name: 'lan'
-adguardhome_use_private_ptr_resolvers: 'true'
+adguardhome_upstream_timeout: "10s"
+adguardhome_local_domain_name: "lan"
+adguardhome_use_private_ptr_resolvers: "true"
 adguardhome_local_ptr_upstreams: []
-adguardhome_tls_enabled: 'false'
-adguardhome_tls_server_name: '""'
-adguardhome_tls_force_https: 'false'
+adguardhome_tls_enabled: "false"
+adguardhome_tls_server_name: "\"\""
+adguardhome_tls_force_https: "false"
 adguardhome_tls_port_https: 443
 adguardhome_tls_port_dns_over_tls: 853
 adguardhome_tls_port_dns_over_quic: 853
 adguardhome_tls_port_dnscrypt: 0
-adguardhome_tls_dnscrypt_config_file: '""'
-adguardhome_tls_allow_enencrypted_doh: 'false'
-adguardhome_tls_sctrict_sni_check: 'false'
-adguardhome_tls_certificate_chain: '""'
-adguardhome_tls_private_key: '""'
-adguardhome_tls_certificate_path: '""'
-adguardhome_tls_private_key_path: '""'
+adguardhome_tls_dnscrypt_config_file: "\"\""
+adguardhome_tls_allow_enencrypted_doh: "false"
+adguardhome_tls_sctrict_sni_check: "false"
+adguardhome_tls_certificate_chain: "\"\""
+adguardhome_tls_private_key: "\"\""
+adguardhome_tls_certificate_path: "\"\""
+adguardhome_tls_private_key_path: "\"\""
 adguardhome_filters:
-  - enabled: 'true'
-    url: 'https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt'
-    name: 'AdGuard DNS filter'
-  - enabled: 'true'
-    url: 'https://adaway.org/hosts.txt'
-    name: 'AdAway Default Blocklist'
-  - enabled: 'true'
-    url: 'https://raw.githubusercontent.com/emiliodallatorre/adult-hosts-list/main/list.txt'
-    name: 'Emiliodallatorre Adult Hosts'
-  - enabled: 'true'
-    url: 'https://someonewhocares.org/hosts/zero/hosts'
-    name: 'ShadowWhisperer Adult'
-  - enabled: 'true'
-    url: 'https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/porn-only/hosts'
-    name: 'StevenBlack Porn'
+  - enabled: "true"
+    url: "https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt"
+    name: "AdGuard DNS filter"
+  - enabled: "true"
+    url: "https://adaway.org/hosts.txt"
+    name: "AdAway Default Blocklist"
+  - enabled: "true"
+    url: "https://raw.githubusercontent.com/emiliodallatorre/adult-hosts-list/main/\
+      list.txt"
+    name: "Emiliodallatorre Adult Hosts"
+  - enabled: "true"
+    url: "https://someonewhocares.org/hosts/zero/hosts"
+    name: "ShadowWhisperer Adult"
+  - enabled: "true"
+    url: "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/por\
+      n-only/hosts"
+    name: "StevenBlack Porn"
 adguardhome_whitelist_filters: []
 adguardhome_user_rules: []
-adguardhome_dhcp_enabled: 'false'
-adguardhome_dhcp_interface_name: '""'
-adguardhome_dhcp_gateway_ip: '""'
-adguardhome_dhcp_subnet_mask: '""'
-adguardhome_dhcp_range_start: '""'
-adguardhome_dhcp_range_end: '""'
+adguardhome_dhcp_enabled: "false"
+adguardhome_dhcp_interface_name: "\"\""
+adguardhome_dhcp_gateway_ip: "\"\""
+adguardhome_dhcp_subnet_mask: "\"\""
+adguardhome_dhcp_range_start: "\"\""
+adguardhome_dhcp_range_end: "\"\""
 adguardhome_dhcp_lease_duration: 86400
 adguardhome_dhcp_icmp_timeout_msec: 1000
 adguardhome_dhcp_options: []
-adguardhome_dhcp6_range_start: '""'
+adguardhome_dhcp6_range_start: "\"\""
 adguardhome_dhcp6_lease_duration: 86400
-adguardhome_dhcp6_slaac_only: 'false'
-adguardhome_dhcp6_allow_slaac: 'false'
+adguardhome_dhcp6_slaac_only: "false"
+adguardhome_dhcp6_allow_slaac: "false"
 adguardhome_clients: []
-adguardhome_runtime_sources_whois: 'true'
-adguardhome_runtime_sources_arp: 'true'
+adguardhome_runtime_sources_whois: "true"
+adguardhome_runtime_sources_arp: "true"
 adguardhome_runtime_sources_rdns: "{{ adguardhome_resolve_clients | default('true') }}"
-adguardhome_runtime_sources_dhcp: 'true'
-adguardhome_runtime_sources_hosts: 'true'
-adguardhome_log_compress: 'false'
-adguardhome_log_localtime: 'false'
+adguardhome_runtime_sources_dhcp: "true"
+adguardhome_runtime_sources_hosts: "true"
+adguardhome_log_compress: "false"
+adguardhome_log_localtime: "false"
 adguardhome_log_max_backups: 0
 adguardhome_log_max_size: 100
 adguardhome_log_max_age: 3
-adguardhome_log_enabled: 'true'
-adguardhome_log_file: '""'
-adguardhome_verbose: 'false'
-adguardhome_os_group: '""'
-adguardhome_os_user: '""'
+adguardhome_log_enabled: "true"
+adguardhome_log_file: "\"\""
+adguardhome_verbose: "false"
+adguardhome_os_group: "\"\""
+adguardhome_os_user: "\"\""
 adguardhome_rlimit_nofile: 0
-adguardhome_private_networks: []  # Added in 0.107.7
-adguardhome_handle_ddr: 'true'  # Added in 0.107.10
-adguardhome_ipset_file: '""'  # Added in 0.107.13
-adguardhome_serve_http3: 'false'  # Added in 0.107.15
-adguardhome_use_http3_upstreams: 'false'  # Added in 0.107.15
-adguardhome_theme: 'auto'  # Added in 0.107.22
-adguardhome_use_dns64: 'false'  # Added in 0.107.23
-adguardhome_dns64_prefixes: []  # Added in 0.107.23
-adguardhome_edns_client_subnet_custom_ip: '""'  # Added in 0.107.26
-adguardhome_edns_client_subnet_use_custom: 'false'  # Added in 0.107.26
-adguardhome_protection_disabled_until: 'null'
-adguardhome_bootstrap_prefer_ipv6: 'false'
-adguardhome_blocked_services_time_zone: 'UTC'
+adguardhome_private_networks: [] # Added in 0.107.7
+adguardhome_handle_ddr: "true" # Added in 0.107.10
+adguardhome_ipset_file: "\"\"" # Added in 0.107.13
+adguardhome_serve_http3: "false" # Added in 0.107.15
+adguardhome_use_http3_upstreams: "false" # Added in 0.107.15
+adguardhome_theme: "auto" # Added in 0.107.22
+adguardhome_use_dns64: "false" # Added in 0.107.23
+adguardhome_dns64_prefixes: [] # Added in 0.107.23
+adguardhome_edns_client_subnet_custom_ip: "\"\"" # Added in 0.107.26
+adguardhome_edns_client_subnet_use_custom: "false" # Added in 0.107.26
+adguardhome_protection_disabled_until: "null"
+adguardhome_bootstrap_prefer_ipv6: "false"
+adguardhome_blocked_services_time_zone: "UTC"
 adguardhome_pprof_port: 6000
 adguardhome_pprof_enabled: "{{ adguardhome_debug_pprof | default('false') }}"
 adguardhome_fallback_dns:
   - 1.1.1.1
 adguardhome_ratelimit_subnet_len_ipv4: 24
 adguardhome_ratelimit_subnet_len_ipv6: 56
-adguardhome_serve_plain_dns: 'true'
-adguardhome_upstream_mode: 'load_balance'
-adguardhome_hostsfile_enabled: 'true'
-adguardhome_querylog_dir_path: '""'
-adguardhome_statistics_dir_log: '""'
+adguardhome_serve_plain_dns: "true"
+adguardhome_upstream_mode: "load_balance"
+adguardhome_hostsfile_enabled: "true"
+adguardhome_querylog_dir_path: "\"\""
+adguardhome_statistics_dir_log: "\"\""
 adguardhome_safe_fs_patterns:
   - /AdGuardHome/userfilters/*
-adguardhome_pending_requests_enabled: 'true'
-adguardhome_cache_enabled: 'true'
-adguardhome_rewrites_enabled: 'true'
+adguardhome_pending_requests_enabled: "true"
+adguardhome_cache_enabled: "true"
+adguardhome_rewrites_enabled: "true"
 adguardhome_cache_optimistic_answer_ttl: 30s
 adguardhome_cache_optimistic_max_age: 12h
 
@@ -197,7 +195,7 @@ unbound_root_hints_file: /var/lib/unbound/root.hints
 unbound_root_key_file: /var/lib/unbound/root.key
 unbound_download_root_hints: true
 unbound_enable_dnssec: true
-unbound_enable_ipv6: true
+unbound_enable_ipv6: no
 
 # Performance settings
 unbound_num_threads: 2
@@ -205,8 +203,8 @@ unbound_msg_cache_slabs: 4
 unbound_rrset_cache_slabs: 4
 unbound_infra_cache_slabs: 4
 unbound_key_cache_slabs: 4
-unbound_rrset_cache_size: 256m
-unbound_msg_cache_size: 128m
+unbound_rrset_cache_size: 32m
+unbound_msg_cache_size: 16m
 unbound_outgoing_range: 950
 unbound_num_queries_per_thread: 512
 
@@ -223,6 +221,7 @@ unbound_prefetch: true
 unbound_prefetch_key: true
 unbound_cache_min_ttl: 300
 unbound_cache_max_ttl: 86400
+unbound_cache_max_negative_ttl: 3600
 
 # Logging
 unbound_verbosity: 1
@@ -263,3 +262,21 @@ unbound_forward_zones: []
 #     servers:
 #       - 1.1.1.1
 #       - 8.8.8.8
+
+# Log2ram configuration
+log2ram_repo_url: http://packages.azlux.fr
+log2ram_gpg: https://azlux.fr/repo.gpg
+log2ram_keyring: /usr/share/keyrings/azlux-archive-keyring.gpg
+log2ram_apt_repository: "deb [signed-by={{ log2ram_keyring }}] {{
+  log2ram_repo_url }}/{{ ansible_distribution | lower }} {{
+  ansible_distribution_release }} main"
+
+# Logging
+log2ram_size: 128M
+log2ram_use_rsync: true
+log2ram_notification: true
+log2ram_notification_command: "mail -s \"Log2Ram Error on $HOSTNAME\""
+log2ram_path_disk: /var/log
+log2ram_use_z2lr: false
+log2ram_comp_alg: lz4
+log2ram_log_disk_size: 256M

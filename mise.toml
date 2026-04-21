@@ -1,0 +1,11 @@
+min_version = "2026.4.12"
+
+[env]
+ANSIBLE_HOST_KEY_CHECKING = "False"
+
+[vars]
+playbook_dir = "ansible/playbooks"
+inventory_dir = "ansible/inventories"
+
+[task_config]
+includes = ["tasks.toml"]
