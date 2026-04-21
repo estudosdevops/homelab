@@ -1,28 +1,20 @@
 ---
-# tasks/unbound.yml
 - name: Install Unbound
   ansible.builtin.apt:
     name: unbound
     state: present
     update_cache: true
 
-- name: Ensure Unbound configuration directory exists
+- name: Ensure unbound data directory exists
   ansible.builtin.file:
-    path: /etc/unbound/unbound.conf.d
+    path: "{{ item.path }}"
     state: directory
-    owner: root
-    group: root
-    mode: 0755
-
-- name: Deploy Unbound configuration
-  ansible.builtin.template:
-    src: unbound.conf.j2
-    dest: "{{ unbound_config_file }}"
-    owner: root
-    group: root
-    mode: 0644
-    validate: 'unbound-checkconf %s'
-  notify: restart unbound
+    owner: "{{ item.owner | default('root') }}"
+    group: "{{ item.group | default('root') }}"
+    mode: "{{ item.mode | default('0755') }}"
+  loop:
+    - { path: /etc/unbound/unbound.conf.d }
+    - { path: /var/lib/unbound, owner: unbound, group: unbound }
 
 - name: Download root hints file
   ansible.builtin.get_url:
@@ -30,21 +22,23 @@
     dest: "{{ unbound_root_hints_file }}"
     owner: root
     group: root
-    mode: 0644
+    mode: 644
   when: unbound_download_root_hints
+
+- name: Deploy Unbound configuration
+  ansible.builtin.template:
+    src: unbound.conf.j2
+    dest: "{{ unbound_config_file }}"
+    owner: root
+    group: root
+    mode: 644
+    validate: "unbound-checkconf %s"
+  notify: restart unbound
 
 - name: Generate root key anchor
   ansible.builtin.command:
     cmd: unbound-anchor -a "{{ unbound_root_key_file }}"
     creates: "{{ unbound_root_key_file }}"
-  when: unbound_enable_dnssec
-
-- name: Set permissions on root key file
-  ansible.builtin.file:
-    path: "{{ unbound_root_key_file }}"
-    owner: unbound
-    group: unbound
-    mode: 0644
   when: unbound_enable_dnssec
 
 - name: Ensure Unbound is started and enabled on boot

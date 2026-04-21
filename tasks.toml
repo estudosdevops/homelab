@@ -1,0 +1,17 @@
+[ansible]
+shell = "bash"
+
+usage = '''
+flag "-p --playbook <playbook>"
+flag "--check"
+'''
+
+run = '''
+PLAYBOOK=${usage_playbook:-test.yml}
+
+ansible-playbook \
+  -i ansible/inventory/dev.ini \
+  "$PLAYBOOK" \
+  ${usage_check:+--check --diff} \
+  --chdir ansible/playbooks
+'''

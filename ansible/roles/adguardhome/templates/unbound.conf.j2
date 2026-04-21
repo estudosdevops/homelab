@@ -14,7 +14,6 @@ server:
 
     # Trust localhost queries
     access-control: 127.0.0.0/8 allow
-    access-control: ::1 allow
 {% for network in unbound_access_control %}
     access-control: {{ network.subnet }} {{ network.action }}
 {% endfor %}
@@ -67,6 +66,7 @@ server:
     # TTL settings
     cache-min-ttl: {{ unbound_cache_min_ttl }}
     cache-max-ttl: {{ unbound_cache_max_ttl }}
+    cache-max-negative-ttl: {{ unbound_cache_max_negative_ttl }}
 
     # Private domains (RFC1918 reverse lookups)
     private-address: 10.0.0.0/8

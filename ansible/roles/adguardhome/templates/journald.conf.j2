@@ -1,0 +1,21 @@
+[Journal]
+
+# limita uso de disco
+SystemMaxUse=50M
+SystemKeepFree=100M
+
+# evita crescimento infinito
+MaxFileSec=1week
+
+# logs em RAM (reduz escrita no SD)
+Storage=auto
+
+# compressão
+Compress=yes
+
+# reduz escrita desnecessária
+SyncIntervalSec=5m
+
+# evita flood de logs
+RateLimitIntervalSec=30s
+RateLimitBurst=1000
