@@ -1,31 +1,40 @@
 ---
-- name: Create DHCP pools
+# =========================================================
+# DHCP POOLS
+# =========================================================
+- name: DHCP | Create pools
   community.routeros.api_modify:
     path: ip pool
     data:
-      - name: "{{ item.name }}"
-        ranges: "{{ item.dhcp.pool_start }}-{{ item.dhcp.pool_end }}"
-  loop: "{{ mikrotik_networks }}"
-  when: item.dhcp.enabled | default(false)
+      - name: "{{ item.key }}"
+        ranges: "{{ item.value.dhcp.pool_start }}-{{ item.value.dhcp.pool_end }}"
+  loop: "{{ mikrotik_networks | dict2items }}"
+  when: item.value.dhcp.enabled | default(false)
 
-- name: Configure DHCP networks
+# =========================================================
+# DHCP NETWORKS
+# =========================================================
+- name: DHCP | Configure networks
   community.routeros.api_modify:
     path: ip dhcp-server network
     data:
-      - address: "{{ item.network }}"
-        gateway: "{{ item.gateway | ansible.utils.ipaddr('address') }}"
-        dns-server: "{{ item.dhcp.dns }}"
-        comment: "{{ item.name }}"
-  loop: "{{ mikrotik_networks }}"
-  when: item.dhcp.enabled | default(false)
+      - address: "{{ item.value.network }}"
+        gateway: "{{ item.value.gateway | ansible.utils.ipaddr('address') }}"
+        dns-server: "{{ item.value.dhcp.dns }}"
+        comment: "{{ item.key }}"
+  loop: "{{ mikrotik_networks | dict2items }}"
+  when: item.value.dhcp.enabled | default(false)
 
-- name: Create DHCP servers
+# =========================================================
+# DHCP SERVERS
+# =========================================================
+- name: DHCP | Create servers
   community.routeros.api_modify:
     path: ip dhcp-server
     data:
-      - name: "{{ item.name }}"
-        interface: "{{ item.bridge }}"
-        address-pool: "{{ item.name }}"
+      - name: "{{ item.key }}"
+        interface: "{{ item.value.bridge }}"
+        address-pool: "{{ item.key }}"
         disabled: "no"
-  loop: "{{ mikrotik_networks }}"
-  when: item.dhcp.enabled | default(false)
+  loop: "{{ mikrotik_networks | dict2items }}"
+  when: item.value.dhcp.enabled | default(false)

@@ -20,6 +20,6 @@
   ansible.builtin.import_tasks: nat.yml
   tags: [mikrotik, nat]
 
-# - name: Configure firewall rules
-#   ansible.builtin.import_tasks: firewall.yml
-#   tags: [mikrotik, firewall]
+- name: Configure firewall rules
+  ansible.builtin.import_tasks: firewall.yml
+  tags: [mikrotik, firewall]

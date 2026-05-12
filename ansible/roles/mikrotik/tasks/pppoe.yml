@@ -1,5 +1,8 @@
 ---
-- name: Configure PPPoE client
+# =========================================================
+# PPPoE CLIENT
+# =========================================================
+- name: PPPoE | Configure client
   community.routeros.api_modify:
     path: interface pppoe-client
     data:
