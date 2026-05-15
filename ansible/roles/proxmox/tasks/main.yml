@@ -1,0 +1,28 @@
+---
+- name: Configure hosts
+  ansible.builtin.import_tasks: hosts.yml
+
+- name: Configure repositories
+  ansible.builtin.import_tasks: repos.yml
+
+- name: Install packages
+  ansible.builtin.import_tasks: packages.yml
+
+- name: Configure timezone
+  ansible.builtin.import_tasks: timezone.yml
+
+- name: Validate chrony
+  ansible.builtin.import_tasks: chrony.yml
+
+- name: Update system
+  ansible.builtin.import_tasks: update.yml
+
+- name: Configure SSH trust
+  ansible.builtin.import_tasks: ssh.yml
+
+- name: Configure proxmox cluster
+  ansible.builtin.import_tasks: cluster.yml
+
+- name: Apply Ceph configuration
+  ansible.builtin.import_tasks: ceph.yml
+  when: proxmox_ceph.enabled

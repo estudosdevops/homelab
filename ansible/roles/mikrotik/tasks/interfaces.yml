@@ -1,7 +1,4 @@
 ---
-# =========================================================
-# INTERFACES / GATEWAYS
-# =========================================================
 - name: INTERFACES | Configure gateway addresses
   community.routeros.api_modify:
     path: ip address

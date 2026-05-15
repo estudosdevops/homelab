@@ -1,130 +1,40 @@
 ---
-# =========================================================
-# FIREWALL - INPUT CHAIN
-# Protect MikroTik itself
-# =========================================================
-- name: INPUT | Accept established and related
-  community.routeros.api_modify:
-    path: ip firewall filter
-    data:
-      - chain: input
-        connection-state: established,related
-        action: accept
-        comment: "INPUT established"
+- name: Firewall | reset dynamic HOME-to-homelab allow list
+  ansible.builtin.set_fact:
+    _mikrotik_fw_homelab_allows: []
 
-- name: INPUT | Drop invalid
-  community.routeros.api_modify:
-    path: ip firewall filter
-    data:
-      - chain: input
-        connection-state: invalid
-        action: drop
-        comment: "INPUT invalid"
-
-- name: INPUT | Allow ICMP
-  community.routeros.api_modify:
-    path: ip firewall filter
-    data:
-      - chain: input
-        protocol: icmp
-        action: accept
-        comment: "INPUT icmp"
-
-- name: INPUT | Allow HOME access to router
-  community.routeros.api_modify:
-    path: ip firewall filter
-    data:
-      - chain: input
-        src-address: "{{ mikrotik_networks.home.network }}"
-        action: accept
-        comment: "INPUT home access"
-
-- name: INPUT | Drop everything else
-  community.routeros.api_modify:
-    path: ip firewall filter
-    data:
-      - chain: input
-        action: drop
-        comment: "INPUT drop"
-
-# =========================================================
-# FIREWALL - FORWARD CHAIN
-# Traffic passing through router
-# =========================================================
-- name: FORWARD | Accept established and related
-  community.routeros.api_modify:
-    path: ip firewall filter
-    data:
-      - chain: forward
-        connection-state: established,related
-        action: accept
-        comment: "FORWARD established"
-
-- name: FORWARD | Drop invalid
-  community.routeros.api_modify:
-    path: ip firewall filter
-    data:
-      - chain: forward
-        connection-state: invalid
-        action: drop
-        comment: "FORWARD invalid"
-
-# =========================================================
-# INTERNET ACCESS
-# =========================================================
-- name: FORWARD | HOME to Internet
-  community.routeros.api_modify:
-    path: ip firewall filter
-    data:
-      - chain: forward
-        src-address: "{{ mikrotik_networks.home.network }}"
-        out-interface: "{{ mikrotik_pppoe.name }}"
-        action: accept
-        comment: "HOME internet"
-
-- name: FORWARD | HOMELAB to Internet
-  community.routeros.api_modify:
-    path: ip firewall filter
-    data:
-      - chain: forward
-        src-address: "{{ mikrotik_networks.homelab.network }}"
-        out-interface: "{{ mikrotik_pppoe.name }}"
-        action: accept
-        comment: "HOMELAB internet"
-
-# =========================================================
-# ALLOWED HOME HOSTS -> HOMELAB
-# =========================================================
-- name: FORWARD | Allow selected HOME hosts to HOMELAB
-  community.routeros.api_modify:
-    path: ip firewall filter
-    data:
-      - chain: forward
-        src-address: "{{ item }}"
-        dst-address: "{{ mikrotik_networks.homelab.network }}"
-        action: accept
-        comment: "Allowed HOME host"
+- name: Firewall | build per-host HOME-to-homelab allow rules
+  ansible.builtin.set_fact:
+    _mikrotik_fw_homelab_allows: "{{ _mikrotik_fw_homelab_allows + [_rule] }}"
+  vars:
+    _rule:
+      chain: forward
+      src-address: "{{ item }}"
+      dst-address: "{{ mikrotik_networks.homelab.network }}"
+      action: accept
+      comment: "ansible:forward home {{ item }} to homelab"
   loop: "{{ mikrotik_homelab_allowed_hosts }}"
 
-# =========================================================
-# INTER-NETWORK ISOLATION
-# =========================================================
-- name: FORWARD | Block HOME to HOMELAB
+- name: Firewall | ensure input chain
   community.routeros.api_modify:
     path: ip firewall filter
-    data:
-      - chain: forward
-        src-address: "{{ mikrotik_networks.home.network }}"
-        dst-address: "{{ mikrotik_networks.homelab.network }}"
-        action: drop
-        comment: "Block HOME to HOMELAB"
+    restrict:
+      - field: chain
+        values:
+          - input
+    handle_absent_entries: remove
+    handle_entries_content: remove_as_much_as_possible
+    ensure_order: true
+    data: "{{ mikrotik_firewall_input }}"
 
-- name: FORWARD | Block HOMELAB to HOME
+- name: Firewall | ensure forward chain
   community.routeros.api_modify:
     path: ip firewall filter
-    data:
-      - chain: forward
-        src-address: "{{ mikrotik_networks.homelab.network }}"
-        dst-address: "{{ mikrotik_networks.home.network }}"
-        action: drop
-        comment: "Block HOMELAB to HOME"
+    restrict:
+      - field: chain
+        values:
+          - forward
+    handle_absent_entries: remove
+    handle_entries_content: remove_as_much_as_possible
+    ensure_order: true
+    data: "{{ mikrotik_firewall_forward_before_host_allows + mikrotik_firewall_forward_homelab_services + _mikrotik_fw_homelab_allows + mikrotik_firewall_forward_after_host_allows }}"

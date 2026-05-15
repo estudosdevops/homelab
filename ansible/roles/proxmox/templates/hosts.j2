@@ -1,0 +1,5 @@
+127.0.0.1 localhost
+
+{% for host in groups['proxmox'] %}
+{{ hostvars[host].ansible_host }} {{ host }}.{{ proxmox_domain }} {{ host }}
+{% endfor %}

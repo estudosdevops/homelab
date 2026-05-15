@@ -45,6 +45,7 @@ adguardhome_ratelimit_whitelist: []
 adguardhome_refuse_any: "true"
 adguardhome_upstream_dns:
   - "127.0.0.1:5335" # Unbound local
+  - "[/homelab.tech/]192.168.20.6"
 adguardhome_upstream_dns_file: "\"\""
 adguardhome_bootstrap_dns: []
 adguardhome_fastest_timeout: "1s"

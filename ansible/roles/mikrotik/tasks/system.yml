@@ -1,27 +1,18 @@
 ---
-# =========================================================
-# SYSTEM
-# =========================================================
 - name: SYSTEM | Set router identity
   community.routeros.api_modify:
     path: system identity
     data:
       - name: "{{ mikrotik_identity }}"
 
-# =========================================================
-# DNS
-# =========================================================
 - name: DNS | Configure DNS servers
   community.routeros.api_modify:
     path: ip dns
     data:
       - servers: "{{ mikrotik_dns.servers | join(',') }}"
         allow-remote-requests: "{{ 'yes' if mikrotik_dns.allow_remote_requests else 'no' }}"
-        cache-size: "{{ mikrotik_dns.cache_size }}KiB"
+        cache-size: "{{ mikrotik_dns.cache_size | int }}"
 
-# =========================================================
-# SERVICES
-# =========================================================
 - name: SERVICES | Disable unused services
   community.routeros.api_modify:
     path: ip service

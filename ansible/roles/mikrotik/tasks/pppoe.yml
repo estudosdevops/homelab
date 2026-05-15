@@ -1,10 +1,12 @@
 ---
-# =========================================================
-# PPPoE CLIENT
-# =========================================================
 - name: PPPoE | Configure client
   community.routeros.api_modify:
     path: interface pppoe-client
+    restrict:
+      - field: name
+        values:
+          - "{{ mikrotik_pppoe.name }}"
+    handle_entries_content: remove_as_much_as_possible
     data:
       - name: "{{ mikrotik_pppoe.name }}"
         interface: "{{ mikrotik_pppoe.interface }}"

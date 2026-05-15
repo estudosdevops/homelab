@@ -1,0 +1,206 @@
+---
+# Ceph orchestration: query state via JSON on the cluster master (run_once), then act only when needed.
+- name: Check if Ceph binary exists
+  ansible.builtin.stat:
+    path: /usr/bin/ceph
+  register: ceph_binary
+
+- name: Install Ceph
+  ansible.builtin.command:
+    cmd: "pveceph install --version {{ proxmox_ceph.version }}"
+  when: not ceph_binary.stat.exists
+
+- name: Check if Ceph config exists
+  ansible.builtin.stat:
+    path: /etc/pve/ceph.conf
+  register: ceph_config
+
+- name: Initialize Ceph cluster
+  ansible.builtin.command:
+    cmd: "pveceph init --network {{ proxmox_ceph.public_network }}"
+  register: proxmox_ceph_init
+  when:
+    - inventory_hostname == proxmox_cluster_master
+    - not ceph_config.stat.exists
+
+- name: Detect whether Ceph is configured on cluster master
+  ansible.builtin.set_fact:
+    proxmox_ceph_is_configured: >-
+      {{
+        hostvars[proxmox_cluster_master].ceph_config.stat.exists | default(false)
+        or (
+          hostvars[proxmox_cluster_master].proxmox_ceph_init is defined
+          and hostvars[proxmox_cluster_master].proxmox_ceph_init is changed
+        )
+      }}
+  run_once: true
+
+- name: Get Ceph monitors
+  ansible.builtin.command:
+    cmd: ceph mon dump -f json
+  register: ceph_mon_dump
+  changed_when: false
+  failed_when: false
+  run_once: true
+  delegate_to: "{{ proxmox_cluster_master }}"
+  when: proxmox_ceph_is_configured | bool
+
+- name: Parse Ceph monitor names
+  ansible.builtin.set_fact:
+    proxmox_ceph_existing_mons: >-
+      {{
+        (ceph_mon_dump.stdout | from_json).mons | default([])
+        | map(attribute='name') | list
+      }}
+  run_once: true
+  when:
+    - ceph_mon_dump is not skipped
+    - ceph_mon_dump.rc == 0
+
+- name: Ensure empty Ceph monitor list when dump unavailable
+  ansible.builtin.set_fact:
+    proxmox_ceph_existing_mons: []
+  run_once: true
+  when: proxmox_ceph_existing_mons is not defined
+
+- name: Create Ceph MONs
+  ansible.builtin.command:
+    cmd: pveceph mon create
+  delegate_to: "{{ item }}"
+  loop: "{{ proxmox_ceph.mons }}"
+  when:
+    - item not in proxmox_ceph_existing_mons
+
+- name: Get Ceph managers
+  ansible.builtin.command:
+    cmd: ceph mgr dump -f json
+  register: ceph_mgr_dump
+  changed_when: false
+  failed_when: false
+  run_once: true
+  delegate_to: "{{ proxmox_cluster_master }}"
+  when: proxmox_ceph_is_configured | bool
+
+- name: Parse Ceph manager names
+  ansible.builtin.set_fact:
+    proxmox_ceph_existing_mgrs: >-
+      {{
+        (
+          [ceph_mgr_data.active_name | default('')]
+          + (ceph_mgr_data.standbys | default([]) | map(attribute='name') | list)
+        )
+        | reject('equalto', '') | list
+      }}
+  vars:
+    ceph_mgr_data: "{{ ceph_mgr_dump.stdout | from_json }}"
+  run_once: true
+  when:
+    - ceph_mgr_dump is not skipped
+    - ceph_mgr_dump.rc == 0
+
+- name: Ensure empty Ceph manager list when dump unavailable
+  ansible.builtin.set_fact:
+    proxmox_ceph_existing_mgrs: []
+  run_once: true
+  when: proxmox_ceph_existing_mgrs is not defined
+
+- name: Create Ceph managers
+  ansible.builtin.command:
+    cmd: pveceph mgr create
+  delegate_to: "{{ item }}"
+  loop: "{{ proxmox_ceph.mgrs }}"
+  when:
+    - item not in proxmox_ceph_existing_mgrs
+
+- name: Get Ceph OSD tree
+  ansible.builtin.command:
+    cmd: ceph osd tree -f json
+  register: ceph_osd_tree
+  changed_when: false
+  failed_when: false
+  run_once: true
+  delegate_to: "{{ proxmox_cluster_master }}"
+  when: proxmox_ceph_is_configured | bool
+
+- name: Parse Ceph hosts that already have OSDs
+  ansible.builtin.set_fact:
+    proxmox_ceph_osd_hosts: >-
+      {{
+        (ceph_osd_tree.stdout | from_json).nodes | default([])
+        | selectattr('type', 'equalto', 'host')
+        | map(attribute='name') | list
+      }}
+  run_once: true
+  when:
+    - ceph_osd_tree is not skipped
+    - ceph_osd_tree.rc == 0
+
+- name: Ensure empty Ceph OSD host list when tree unavailable
+  ansible.builtin.set_fact:
+    proxmox_ceph_osd_hosts: []
+  run_once: true
+  when: proxmox_ceph_osd_hosts is not defined
+
+- name: Create Ceph OSDs
+  ansible.builtin.command:
+    cmd: "pveceph osd create {{ proxmox_ceph.osds[inventory_hostname] }}"
+  when:
+    - inventory_hostname in proxmox_ceph.osds
+    - inventory_hostname not in proxmox_ceph_osd_hosts
+
+- name: Get Ceph pools
+  ansible.builtin.command:
+    cmd: ceph osd pool ls
+  register: ceph_pools
+  changed_when: false
+  failed_when: false
+  run_once: true
+  delegate_to: "{{ proxmox_cluster_master }}"
+  when: proxmox_ceph_is_configured | bool
+
+- name: Parse existing Ceph pool names
+  ansible.builtin.set_fact:
+    proxmox_ceph_existing_pools: "{{ ceph_pools.stdout_lines | default([]) | map('trim') | reject('equalto', '') | list }}"
+  run_once: true
+  when:
+    - ceph_pools is not skipped
+    - ceph_pools.rc == 0
+
+- name: Ensure empty Ceph pool list when query unavailable
+  ansible.builtin.set_fact:
+    proxmox_ceph_existing_pools: []
+  run_once: true
+  when: proxmox_ceph_existing_pools is not defined
+
+- name: Create Ceph pools
+  ansible.builtin.command:
+    cmd: >
+      pveceph pool create {{ item.name }}
+      --size {{ item.size }}
+      --min_size {{ item.min_size }}
+  loop: "{{ proxmox_ceph.pools }}"
+  when:
+    - item.name not in proxmox_ceph_existing_pools
+  run_once: true
+  delegate_to: "{{ proxmox_cluster_master }}"
+
+- name: Check RBD pool initialization state
+  ansible.builtin.command:
+    cmd: "rbd pool is-init {{ item.name }}"
+  loop: "{{ proxmox_ceph.pools }}"
+  register: rbd_pool_init_checks
+  failed_when: false
+  changed_when: false
+  run_once: true
+  delegate_to: "{{ proxmox_cluster_master }}"
+  when: proxmox_ceph_is_configured | bool
+
+- name: Initialize RBD pool
+  ansible.builtin.command:
+    cmd: "rbd pool init {{ item.item.name }}"
+  loop: "{{ rbd_pool_init_checks.results | default([]) }}"
+  when:
+    - item.rc is defined
+    - item.rc != 0
+  run_once: true
+  delegate_to: "{{ proxmox_cluster_master }}"

@@ -1,7 +1,4 @@
 ---
-# =========================================================
-# DHCP POOLS
-# =========================================================
 - name: DHCP | Create pools
   community.routeros.api_modify:
     path: ip pool
@@ -11,9 +8,6 @@
   loop: "{{ mikrotik_networks | dict2items }}"
   when: item.value.dhcp.enabled | default(false)
 
-# =========================================================
-# DHCP NETWORKS
-# =========================================================
 - name: DHCP | Configure networks
   community.routeros.api_modify:
     path: ip dhcp-server network
@@ -25,9 +19,6 @@
   loop: "{{ mikrotik_networks | dict2items }}"
   when: item.value.dhcp.enabled | default(false)
 
-# =========================================================
-# DHCP SERVERS
-# =========================================================
 - name: DHCP | Create servers
   community.routeros.api_modify:
     path: ip dhcp-server
