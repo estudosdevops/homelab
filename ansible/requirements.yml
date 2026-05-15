@@ -1,7 +1,11 @@
 ---
 collections:
+  - name: community.general
+    version: ">=8.0.0"
+  - name: ansible.posix
+    version: ">=1.5.0"
   - name: community.routeros
-    version: ">=2.0.0"
+    version: ">=2.18.0"
   - name: ansible.netcommon
     version: ">=5.0.0"
   - name: ansible.utils

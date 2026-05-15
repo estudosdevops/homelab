@@ -1,0 +1,21 @@
+---
+- name: Remove enterprise repositories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop: "{{ proxmox_remove_enterprise_repositories }}"
+  loop_control:
+    label: "{{ item | basename }}"
+
+- name: Configure pve no-subscription repository
+  ansible.builtin.copy:
+    dest: /etc/apt/sources.list.d/pve-no-subscription.sources
+    content: |
+      Types: deb
+      URIs: http://download.proxmox.com/debian/pve
+      Suites: {{ proxmox_debian_release }}
+      Components: pve-no-subscription
+      Signed-By: /usr/share/keyrings/proxmox-archive-keyring.gpg
+    owner: root
+    group: root
+    mode: "0644"

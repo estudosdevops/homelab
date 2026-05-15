@@ -1,0 +1,59 @@
+---
+- name: Create Proxmox cluster
+  ansible.builtin.command:
+    cmd: "pvecm create {{ proxmox_cluster_name }}"
+    creates: /etc/pve/corosync.conf
+  register: proxmox_cluster_create
+  when:
+    - inventory_hostname == proxmox_cluster_master
+
+- name: Wait cluster startup
+  ansible.builtin.pause:
+    seconds: "{{ proxmox_cluster_create_pause_seconds }}"
+  when:
+    - inventory_hostname == proxmox_cluster_master
+    - proxmox_cluster_create is changed
+
+- name: Wait for cluster to be ready
+  ansible.builtin.command:
+    cmd: pvecm status
+  changed_when: false
+  retries: 5
+  delay: 10
+  register: cluster_status
+  when:
+    - inventory_hostname == proxmox_cluster_master
+    - proxmox_cluster_create is changed
+
+- name: Join nodes to cluster
+  ansible.builtin.command:
+    cmd: "pvecm add {{ hostvars[proxmox_cluster_master].ansible_host }}"
+    creates: /etc/pve/corosync.conf
+  register: proxmox_cluster_join
+  when:
+    - inventory_hostname != proxmox_cluster_master
+    - hostvars[proxmox_cluster_master].proxmox_cluster_create is changed
+
+- name: Wait nodes to join cluster
+  ansible.builtin.pause:
+    seconds: 15
+  when:
+    - inventory_hostname != proxmox_cluster_master
+    - proxmox_cluster_join is changed
+
+- name: Validate cluster status
+  ansible.builtin.command:
+    cmd: pvecm status
+  changed_when: false
+  register: cluster_final_status
+  when:
+    - hostvars[proxmox_cluster_master].proxmox_cluster_create is changed
+  run_once: true
+  delegate_to: "{{ proxmox_cluster_master }}"
+
+- name: Show cluster status
+  ansible.builtin.debug:
+    msg: "{{ cluster_final_status.stdout_lines }}"
+  when:
+    - cluster_final_status is not skipped
+  run_once: true

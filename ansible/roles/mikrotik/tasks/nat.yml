@@ -2,8 +2,14 @@
 - name: Configure NAT masquerade
   community.routeros.api_modify:
     path: ip firewall nat
+    restrict:
+      - field: comment
+        values:
+          - "ansible:nat to internet"
+    handle_absent_entries: remove
+    handle_entries_content: remove_as_much_as_possible
     data:
       - chain: srcnat
         out-interface: "{{ mikrotik_pppoe.name }}"
         action: masquerade
-        comment: "NAT to Internet"
+        comment: "ansible:nat to internet"

@@ -1,0 +1,3 @@
+{% for host in groups['proxmox'] %}
+{{ lookup('pipe', 'ssh-keyscan ' ~ hostvars[host].ansible_host ~ ' 2>/dev/null') }}
+{% endfor %}

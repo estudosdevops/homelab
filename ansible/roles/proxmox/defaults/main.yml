@@ -1,0 +1,45 @@
+---
+proxmox_domain: "{{ domain }}"
+proxmox_cluster_name: homelab
+proxmox_cluster_master: pve01
+# Pause only when pvecm create actually runs (first bootstrap).
+proxmox_cluster_create_pause_seconds: 10
+proxmox_debian_release: trixie
+proxmox_timezone: America/Sao_Paulo
+
+proxmox_remove_enterprise_repositories:
+  - /etc/apt/sources.list.d/pve-enterprise.sources
+  - /etc/apt/sources.list.d/ceph.sources
+
+proxmox_packages:
+  - vim
+  - curl
+  - wget
+  - htop
+  - net-tools
+  - sshpass
+  - dnsutils
+  - qemu-guest-agent
+
+proxmox_ceph:
+  enabled: true
+  version: squid
+  public_network: 192.168.20.0/24
+
+  mons:
+    - pve01
+    - pve02
+    - pve03
+
+  mgrs:
+    - pve01
+
+  osds:
+    pve02: /dev/sda
+    pve03: /dev/sda
+    pve04: /dev/sda
+
+  pools:
+    - name: rbd
+      size: 2
+      min_size: 1

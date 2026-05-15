@@ -1,18 +1,9 @@
 ---
-# =========================================================
-# Credentials
-# =========================================================
 mikrotik_api_user: admin
 mikrotik_api_password: ""
 
-# =========================================================
-# System
-# =========================================================
 mikrotik_identity: RB_HOME
 
-# =========================================================
-# WAN
-# =========================================================
 mikrotik_pppoe:
   enabled: true
   interface: ether1
@@ -20,9 +11,6 @@ mikrotik_pppoe:
   user: ""
   password: ""
 
-# =========================================================
-# Bridges
-# =========================================================
 mikrotik_bridges:
   - name: home
     ports:
@@ -34,9 +22,6 @@ mikrotik_bridges:
     ports:
       - ether5
 
-# =========================================================
-# Networks
-# =========================================================
 mikrotik_networks:
   home:
     bridge: home
@@ -60,23 +45,92 @@ mikrotik_networks:
       pool_end: 192.168.20.254
       dns: 1.1.1.1
 
-# =========================================================
-# Allowed Hosts
-# =========================================================
 mikrotik_homelab_allowed_hosts:
   - 192.168.10.143
 
-# =========================================================
-# DNS
-# =========================================================
+mikrotik_firewall_input:
+  - chain: input
+    connection-state: established,related
+    action: accept
+    comment: ansible:input established,related
+  - chain: input
+    connection-state: invalid
+    action: drop
+    comment: ansible:input invalid
+  - chain: input
+    protocol: icmp
+    action: accept
+    comment: ansible:input icmp
+  - chain: input
+    src-address: "{{ mikrotik_networks.home.network }}"
+    action: accept
+    comment: ansible:input home to router
+  - chain: input
+    action: drop
+    comment: ansible:input drop final
+
+# Forward rules before per-host allows (HOME -> homelab LAN).
+mikrotik_firewall_forward_before_host_allows:
+  - chain: forward
+    connection-state: established,related
+    action: accept
+    comment: ansible:forward established,related
+  - chain: forward
+    connection-state: invalid
+    action: drop
+    comment: ansible:forward invalid
+  - chain: forward
+    src-address: "{{ mikrotik_networks.home.network }}"
+    out-interface: "{{ mikrotik_pppoe.name }}"
+    action: accept
+    comment: ansible:forward home to wan
+  - chain: forward
+    src-address: "{{ mikrotik_networks.homelab.network }}"
+    out-interface: "{{ mikrotik_pppoe.name }}"
+    action: accept
+    comment: ansible:forward homelab to wan
+
+# allows and before inter-VLAN drops. Tune or set to [] if unused.
+mikrotik_firewall_forward_homelab_services:
+  - chain: forward
+    src-address: "{{ mikrotik_networks.home.network }}"
+    dst-address: 192.168.20.6
+    protocol: udp
+    dst-port: "53"
+    action: accept
+    comment: ansible:forward home to homelab adguard udp53
+  - chain: forward
+    src-address: "{{ mikrotik_networks.home.network }}"
+    dst-address: 192.168.20.6
+    protocol: tcp
+    dst-port: "53"
+    action: accept
+    comment: ansible:forward home to homelab adguard tcp53
+  - chain: forward
+    src-address: "{{ mikrotik_networks.home.network }}"
+    dst-address: 192.168.20.7
+    protocol: tcp
+    dst-port: "80,443"
+    action: accept
+    comment: ansible:forward home to homelab npm
+
+# Forward rules after per-host allows (inter-network isolation).
+mikrotik_firewall_forward_after_host_allows:
+  - chain: forward
+    src-address: "{{ mikrotik_networks.home.network }}"
+    dst-address: "{{ mikrotik_networks.homelab.network }}"
+    action: drop
+    comment: ansible:forward block home to homelab
+  - chain: forward
+    src-address: "{{ mikrotik_networks.homelab.network }}"
+    dst-address: "{{ mikrotik_networks.home.network }}"
+    action: drop
+    comment: ansible:forward block homelab to home
+
 mikrotik_dns:
   servers:
     - 192.168.10.2
-
   allow_remote_requests: false
   cache_size: 4096
 
-# =========================================================
-# Port Forward
-# =========================================================
 mikrotik_port_forwards: []

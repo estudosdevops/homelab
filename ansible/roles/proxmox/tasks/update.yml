@@ -1,0 +1,14 @@
+---
+- name: Check for available upgrades
+  ansible.builtin.command:
+    cmd: apt list --upgradable -qq
+  register: upgradable_packages
+  changed_when: false
+  check_mode: false
+
+- name: Upgrade system packages
+  ansible.builtin.apt:
+    upgrade: safe
+    autoremove: true
+    autoclean: true
+  when: upgradable_packages.stdout_lines | length > 0

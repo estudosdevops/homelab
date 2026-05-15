@@ -1,0 +1,11 @@
+---
+- name: Configure Proxmox Cluster
+  hosts: proxmox
+  serial: 1
+  become: true
+  gather_facts: true
+
+  tasks:
+    - name: Apply proxmox role
+      ansible.builtin.import_role:
+        name: proxmox
