@@ -29,3 +29,25 @@
         disabled: "no"
   loop: "{{ mikrotik_networks | dict2items }}"
   when: item.value.dhcp.enabled | default(false)
+
+- name: DHCP Reservations | Build leases list
+  ansible.builtin.set_fact:
+    _dhcp_reservations: "{{ _dhcp_reservations | default([]) + [_lease] }}"
+  vars:
+    _lease:
+      address: "{{ item.address }}"
+      mac-address: "{{ item['mac-address'] }}"
+      comment: "{{ item.comment }}"
+      disabled: "no"
+  loop: "{{ mikrotik_dhcp_reservations }}"
+
+- name: DHCP Reservations | Configure static leases
+  community.routeros.api_modify:
+    path: ip dhcp-server lease
+    data:
+      - address: "{{ item.address }}"
+        mac-address: "{{ item['mac-address'] }}"
+        server: "{{ item.server }}"
+        comment: "{{ item.comment }}"
+        disabled: "no"
+  loop: "{{ mikrotik_dhcp_reservations }}"

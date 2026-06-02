@@ -1,0 +1,46 @@
+---
+clusterName: prod
+
+talosVersion: "${talosVersion}"
+kubernetesVersion: "${kubernetesVersion}"
+
+endpoint: https://192.168.20.10:6443
+
+additionalApiServerCertSans:
+  - 127.0.0.1
+  - 192.168.20.10
+
+additionalMachineCertSans:
+  - 127.0.0.1
+  - 192.168.20.10
+
+clusterPodNets:
+  - 10.244.0.0/16
+
+clusterSvcNets:
+  - 10.96.0.0/12
+
+# Disable built-in CNI to use Cilium
+cniConfig:
+  name: none
+
+nodes:
+  - hostname: kube-prod-cp0
+    ipAddress: 192.168.20.10
+    controlPlane: true
+    installDisk: /dev/sda
+    networkInterfaces:
+      - interface: ens18
+        dhcp: true
+        mtu: 1500
+
+patches:
+  - "@../../patches/global/machine-files.yaml"
+  - "@../../patches/global/machine-kubelet.yaml"
+  - "@../../patches/global/machine-sysctls.yaml"
+  - "@../../patches/global/machine-time.yaml"
+
+controlPlane:
+  patches:
+    - "@../../patches/controller/admission-controller-patch.yaml"
+    - "@../../patches/controller/cluster.yaml"

@@ -4,6 +4,9 @@ kind: AppProject
 metadata:
   name: addons
   namespace: argocd
+  labels:
+    app.kubernetes.io/name: addons
+    app.kubernetes.io/managed-by: argocd
 spec:
   description: Cluster addons
   sourceRepos:
@@ -20,6 +23,9 @@ kind: Application
 metadata:
   name: addons
   namespace: argocd
+  labels:
+    app.kubernetes.io/name: addons
+    app.kubernetes.io/managed-by: argocd
 spec:
   project: addons
   source:

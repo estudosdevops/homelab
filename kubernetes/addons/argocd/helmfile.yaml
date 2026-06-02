@@ -17,6 +17,13 @@ releases:
     values:
       - values/values.yaml.gotmpl
     disableValidationOnInstall: true
+    hooks:
+      - events: ["postsync"]
+        command: "kubectl"
+        args:
+          - "apply"
+          - "-f"
+          - "values/addons.yaml"
 
   - name: argo-rollouts
     namespace: argo-rollouts

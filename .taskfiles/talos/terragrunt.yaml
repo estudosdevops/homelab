@@ -1,0 +1,50 @@
+version: "3"
+
+tasks:
+  validate:
+    internal: true
+    requires:
+      vars:
+        - name: CLUSTER
+          enum:
+            ref: .VALID_CLUSTERS
+
+  plan:
+    desc: Planeja infraestrutura VMs
+    deps:
+      - validate
+    dir: "{{.TG_DIR}}"
+    env:
+      CLUSTER: "{{.CLUSTER}}"
+    cmds:
+      - terragrunt plan
+
+  apply:
+    desc: Provisiona VMs
+    deps:
+      - validate
+    prompt: Provisionar VMs do cluster {{.CLUSTER}}?
+    dir: "{{.TG_DIR}}"
+    env:
+      CLUSTER: "{{.CLUSTER}}"
+    cmds:
+      - terragrunt apply -auto-approve
+
+  destroy:
+    desc: Remove infraestrutura
+    deps:
+      - validate
+    prompt: Destruir VMs do cluster {{.CLUSTER}}?
+    dir: "{{.TG_DIR}}"
+    env:
+      CLUSTER: "{{.CLUSTER}}"
+    cmds:
+      - terragrunt destroy -auto-approve
+
+  output:
+    desc: Outputs Terraform
+    dir: "{{.TG_DIR}}"
+    env:
+      CLUSTER: "{{.CLUSTER}}"
+    cmds:
+      - terragrunt output -json

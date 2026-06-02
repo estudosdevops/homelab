@@ -41,9 +41,25 @@ mikrotik_networks:
 
     dhcp:
       enabled: true
-      pool_start: 192.168.20.61
+      pool_start: 192.168.20.100
       pool_end: 192.168.20.254
-      dns: 1.1.1.1
+      dns: 192.168.20.6
+
+mikrotik_dhcp_reservations:
+  - address: 192.168.20.10
+    mac-address: "BC:24:11:AA:BB:01"
+    server: homelab
+    comment: "ansible:reserved - kube-prod-cp0"
+
+  - address: 192.168.20.11
+    mac-address: "BC:24:11:AA:BB:02"
+    server: homelab
+    comment: "ansible:reserved - kube-prod-cp1"
+
+  - address: 192.168.20.12
+    mac-address: "BC:24:11:AA:BB:03"
+    server: homelab
+    comment: "ansible:reserved - kube-prod-cp2"
 
 mikrotik_homelab_allowed_hosts:
   - 192.168.10.143
@@ -113,6 +129,13 @@ mikrotik_firewall_forward_homelab_services:
     dst-port: "80,443"
     action: accept
     comment: ansible:forward home to homelab npm
+  - chain: forward
+    src-address: "{{ mikrotik_networks.home.network }}"
+    dst-address: 192.168.20.240
+    protocol: tcp
+    dst-port: "80,443"
+    action: accept
+    comment: ansible:forward home to homelab gateway-api-k8s
 
 # Forward rules after per-host allows (inter-network isolation).
 mikrotik_firewall_forward_after_host_allows:

@@ -1,0 +1,60 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: pool
+spec:
+  allowFirstLastIPs: "No"
+  blocks:
+    - start: "192.168.20.240"
+      stop: "192.168.20.250"
+---
+apiVersion: cilium.io/v2alpha1
+kind: CiliumL2AnnouncementPolicy
+metadata:
+  name: l2-policy
+spec:
+  loadBalancerIPs: true
+  interfaces:
+    - ^eth[0-9]+
+    - ^enp[0-9a-z]+
+    - ^ens[0-9]+
+  nodeSelector:
+    matchLabels:
+      kubernetes.io/os: linux
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: edge
+  namespace: gateway-system
+  annotations:
+    gateway-cilium/ip-note: "VIP fixo do pool"
+spec:
+  gatewayClassName: cilium
+  addresses:
+    - type: IPAddress
+      value: "192.168.20.240"
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 80
+      # Permite rotas de qualquer namespace; restrinja com
+      # namespaces.from: Selector se quiser mais isolamento
+      allowedRoutes:
+        namespaces:
+          from: All
+
+    # ── Listener HTTPS (descomente após criar o Secret TLS) ──
+    # - name: https
+    #   protocol: HTTPS
+    #   port: 443
+    #   tls:
+    #     mode: Terminate
+    #     certificateRefs:
+    #       - kind: Secret
+    #         name: homelab-tls
+    #         namespace: gateway-system
+    #   allowedRoutes:
+    #     namespaces:
+    #       from: All

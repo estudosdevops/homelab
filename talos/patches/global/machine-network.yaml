@@ -1,0 +1,8 @@
+machine:
+  network:
+    interfaces:
+      - interface: ens18
+        dhcp: true
+
+    nameservers:
+      - 192.168.20.6

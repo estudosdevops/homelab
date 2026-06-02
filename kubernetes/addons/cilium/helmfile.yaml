@@ -2,19 +2,39 @@
 bases:
   - "../bases/helmDefaults.yaml"
 
----
 repositories:
+  - name: wiremind
+    url: https://wiremind.github.io/wiremind-helm-charts
   - name: cilium
     url: https://helm.cilium.io
 
 releases:
+  - name: gateway-api-crds
+    namespace: gateway-system
+    chart: wiremind/gateway-api-crds
+    version: ~1.5.1
+    installed: true
+    labels:
+      tier: crds
+    wait: false
+    atomic: false
+
   - name: cilium
     namespace: kube-system
     chart: cilium/cilium
-    version: ~1.18.1
+    version: ~1.19.4
     installed: true
     labels:
       tier: cilium
+    needs:
+      - gateway-system/gateway-api-crds
     values:
       - values/values.yaml.gotmpl
     disableValidationOnInstall: true
+    hooks:
+      - events: ["postsync"]
+        command: "kubectl"
+        args:
+          - "apply"
+          - "-f"
+          - "networks.yaml"
