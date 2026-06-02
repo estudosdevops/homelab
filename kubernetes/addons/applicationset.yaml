@@ -15,10 +15,10 @@ spec:
               files:
                 - path: kubernetes/addons/*/config.yaml
           # Descobre clusters
-          - clusters:
-              selector:
-                matchLabels:
-                  addons: enabled
+          - clusters: {}
+              # selector:
+              #  matchLabels:
+              #    addons: enabled
   template:
     metadata:
       name: "{{ .values.name }}-{{ .name }}"
@@ -39,7 +39,7 @@ spec:
             ignoreMissingValueFiles: true
         # Repo GitOps
         - repoURL: https://github.com/estudosdevops/homelab.git
-          targetRevision: main
+          targetRevision: refactor/homelab
           ref: values
       syncPolicy:
         automated:
