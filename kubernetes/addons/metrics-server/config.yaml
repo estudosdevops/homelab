@@ -1,6 +1,6 @@
 name: metrics-server
 
-enabled: true
+# enabled: true
 
 namespace: kube-system
 
