@@ -8,21 +8,23 @@ spec:
   generators:
     - matrix:
         generators:
-          # Descobre addons
           - git:
               repoURL: https://github.com/estudosdevops/homelab.git
               revision: refactor/homelab
               files:
                 - path: kubernetes/addons/*/config.yaml
               pathParamPrefix: addon
-          # Descobre clusters
           - clusters: {}
               # selector:
               #  matchLabels:
               #    addons: enabled
   template:
     metadata:
-      name: "{{ .addon.name }}-{{ .name }}"
+      name: "{{ .name }}"
+      labels:
+        app.kubernetes.io/name: "{{ .name }}"
+        app.kubernetes.io/managed-by: argocd
+        app.kubernetes.io/part-of: addons
     spec:
       project: addons
       destination:
@@ -30,8 +32,8 @@ spec:
         namespace: "{{ .namespace }}"
       sources:
         # Chart upstream
-        - repoURL: "{{ .addon.source.repoURL }}"
-          chart: "{{ .addon.source.chart }}"
+        - repoURL: "{{ .source.repoURL }}"
+          chart: "{{ .source.chart }}"
           targetRevision: "{{ .addon.source.targetRevision }}"
           helm:
             valueFiles:
