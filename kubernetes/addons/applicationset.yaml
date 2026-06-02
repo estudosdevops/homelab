@@ -21,21 +21,21 @@ spec:
               #    addons: enabled
   template:
     metadata:
-      name: "{{ .values.name }}-{{ .name }}"
+      name: "{{ .name }}"
     spec:
       project: default
       destination:
         server: "{{ .server }}"
-        namespace: "{{ .values.namespace }}"
+        namespace: "{{ .namespace }}"
       sources:
         # Chart upstream
-        - repoURL: "{{ .values.source.repoURL }}"
-          chart: "{{ .values.source.chart }}"
-          targetRevision: "{{ .values.source.targetRevision }}"
+        - repoURL: "{{ .source.repoURL }}"
+          chart: "{{ .source.chart }}"
+          targetRevision: "{{ .source.targetRevision }}"
           helm:
             valueFiles:
-              - "$values/kubernetes/addons/{{ .values.name }}/values/common.yaml"
-              - "$values/kubernetes/addons/{{ .values.name }}/values/{{ .name }}.yaml"
+              - "$values/kubernetes/addons/{{ .name }}/values/common.yaml"
+              - "$values/kubernetes/addons/{{ .name }}/values/{{ .name }}.yaml"
             ignoreMissingValueFiles: true
         # Repo GitOps
         - repoURL: https://github.com/estudosdevops/homelab.git
