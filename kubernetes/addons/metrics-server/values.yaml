@@ -1,0 +1,46 @@
+# GitOps Configuration for Metrics Server
+# Chart externo é definido em Chart.yaml (DRY)
+
+---
+# Metadados do addon
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    app.kubernetes.io/description: "Metrics Server para HPA e monitoring"
+    app.kubernetes.io/version: "3.13.0"
+
+# Namespace onde será instalado
+namespace: kube-system
+
+# Project ArgoCD
+project: metrics-server
+
+# Configurações do Helm chart
+args:
+  - --kubelet-insecure-tls
+  - --kubelet-preferred-address-types=InternalIP,Hostname
+  - --kubelet-use-node-status-port
+  - --metric-resolution=15s
+
+# Resources do pod
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 100m
+    memory: 128Mi
+
+# Número de replicas
+replicas: 1
+
+# Security context
+securityContext:
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+
+# Service account
+serviceAccount:
+  create: true
+  name: metrics-server

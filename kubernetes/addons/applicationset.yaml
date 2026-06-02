@@ -1,0 +1,49 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: addons
+  namespace: argocd
+spec:
+  goTemplate: true
+  generators:
+    - matrix:
+        generators:
+          # Descobre addons
+          - git:
+              repoURL: https://github.com/estudosdevops/homelab.git
+              revision: refactor/homelab
+              files:
+                - path: kubernetes/addons/*/config.yaml
+          # Descobre clusters
+          - clusters:
+              selector:
+                matchLabels:
+                  addons: enabled
+  template:
+    metadata:
+      name: "{{ .values.name }}-{{ .name }}"
+    spec:
+      project: default
+      destination:
+        server: "{{ .server }}"
+        namespace: "{{ .values.namespace }}"
+      sources:
+        # Chart upstream
+        - repoURL: "{{ .values.source.repoURL }}"
+          chart: "{{ .values.source.chart }}"
+          targetRevision: "{{ .values.source.targetRevision }}"
+          helm:
+            valueFiles:
+              - "$values/kubernetes/addons/{{ .values.name }}/values/common.yaml"
+              - "$values/kubernetes/addons/{{ .values.name }}/values/{{ .name }}.yaml"
+            ignoreMissingValueFiles: true
+        # Repo GitOps
+        - repoURL: https://github.com/estudosdevops/homelab.git
+          targetRevision: main
+          ref: values
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
