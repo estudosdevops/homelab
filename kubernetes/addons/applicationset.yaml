@@ -14,6 +14,7 @@ spec:
               revision: refactor/homelab
               files:
                 - path: kubernetes/addons/*/config.yaml
+              pathParamPrefix: addon
           # Descobre clusters
           - clusters: {}
               # selector:
@@ -21,17 +22,17 @@ spec:
               #    addons: enabled
   template:
     metadata:
-      name: "{{ .name }}"
+      name: "{{ .addon.name }}-{{ .name }}"
     spec:
-      project: default
+      project: addons
       destination:
         server: "{{ .server }}"
         namespace: "{{ .namespace }}"
       sources:
         # Chart upstream
-        - repoURL: "{{ .source.repoURL }}"
-          chart: "{{ .source.chart }}"
-          targetRevision: "{{ .source.targetRevision }}"
+        - repoURL: "{{ .addon.source.repoURL }}"
+          chart: "{{ .addon.source.chart }}"
+          targetRevision: "{{ .addon.source.targetRevision }}"
           helm:
             valueFiles:
               - "$values/kubernetes/addons/{{ .name }}/values/common.yaml"
