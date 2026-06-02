@@ -13,7 +13,6 @@ spec:
               revision: refactor/homelab
               files:
                 - path: kubernetes/addons/*/config.yaml
-              pathParamPrefix: addon
           - clusters: {}
               # selector:
               #  matchLabels:
@@ -31,16 +30,14 @@ spec:
         server: "{{ .server }}"
         namespace: "{{ .namespace }}"
       sources:
-        # Chart upstream
         - repoURL: "{{ .source.repoURL }}"
           chart: "{{ .source.chart }}"
-          targetRevision: "{{ .addon.source.targetRevision }}"
+          targetRevision: "{{ .source.targetRevision }}"
           helm:
             valueFiles:
               - "$values/kubernetes/addons/{{ .name }}/values/common.yaml"
               - "$values/kubernetes/addons/{{ .name }}/values/{{ .name }}.yaml"
             ignoreMissingValueFiles: true
-        # Repo GitOps
         - repoURL: https://github.com/estudosdevops/homelab.git
           targetRevision: refactor/homelab
           ref: values
