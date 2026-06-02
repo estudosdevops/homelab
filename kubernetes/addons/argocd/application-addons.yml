@@ -1,11 +1,27 @@
 ---
 apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: addons
+  namespace: argocd
+spec:
+  description: Cluster addons
+  sourceRepos:
+    - "*"
+  destinations:
+    - namespace: "*"
+      server: "*"
+  clusterResourceWhitelist:
+    - group: "*"
+      kind: "*"
+---
+apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: addons
   namespace: argocd
 spec:
-  project: default
+  project: addons
   source:
     repoURL: https://github.com/estudosdevops/homelab.git
     targetRevision: refactor/homelab
