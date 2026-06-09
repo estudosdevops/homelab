@@ -49,17 +49,27 @@ mikrotik_dhcp_reservations:
   - address: 192.168.20.10
     mac-address: "BC:24:11:AA:BB:01"
     server: homelab
-    comment: "ansible:reserved - kube-prod-cp0"
+    comment: "ansible:reserved - k8s-prod-cp0"
 
   - address: 192.168.20.11
     mac-address: "BC:24:11:AA:BB:02"
     server: homelab
-    comment: "ansible:reserved - kube-prod-cp1"
+    comment: "ansible:reserved - k8s-prod-cp1"
 
   - address: 192.168.20.12
     mac-address: "BC:24:11:AA:BB:03"
     server: homelab
-    comment: "ansible:reserved - kube-prod-cp2"
+    comment: "ansible:reserved - k8s-prod-cp2"
+
+  - address: 192.168.20.13
+    mac-address: "BC:24:11:AA:CC:01"
+    server: homelab
+    comment: "ansible:reserved - k8s-prod-wk0"
+
+  - address: 192.168.20.14
+    mac-address: "BC:24:11:AA:CC:02"
+    server: homelab
+    comment: "ansible:reserved - k8s-prod-wk1"
 
 mikrotik_homelab_allowed_hosts:
   - 192.168.10.143

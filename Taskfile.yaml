@@ -12,12 +12,12 @@ vars:
     - stg
     - sdx
 
-  TALENV_FILE: "../talenv.yaml"
-  ADDONS_DIR: "./kubernetes/addons"
-  KUBECONFIG: "{{.TALOS_DIR}}/kubeconfig"
-  TG_DIR: "./terragrunt/proxmox/clusters/k8s"
-  TALOS_DIR: "{{.ROOT_DIR}}/talos/clusters/{{.CLUSTER}}"
-  TALOSCONFIG: "{{.TALOS_DIR}}/clusterconfig/talosconfig"
+  TALOS_DIR: "{{.ROOT_DIR}}/talos"
+  ADDONS_DIR: "{{.ROOT_DIR}}/kubernetes/addons"
+  TG_DIR: "{{.ROOT_DIR}}/terragrunt/proxmox/vms/talos"
+  CLUSTERS_DIR: "{{.ROOT_DIR}}/talos/clusters/{{.CLUSTER}}"
+  KUBECONFIG: "{{.CLUSTERS_DIR}}/kubeconfig"
+  TALOSCONFIG: "{{.CLUSTERS_DIR}}/clusterconfig/talosconfig"
 
 env:
   TALOSCONFIG: "{{.TALOSCONFIG}}"
@@ -42,18 +42,11 @@ tasks:
           enum:
             ref: .VALID_CLUSTERS
 
-#  create-k8s:
-#    desc: Provisiona infraestrutura + bootstrap cluster k8s
-#    deps:
-#      - validate
-#    cmds:
-#      - task: terragrunt:apply
-#      - task: bootstrap:talos
-#      - task: bootstrap:addons
-
-#  destroy-k8s:
-#    desc: Destroy cluster k8s completo
-#    prompt: Isso vai destruir todo o cluster. Continuar?
-#    cmds:
-#      - task: talos:reset
-#      - task: terragrunt:destroy
+  talos:create-k8s:
+    desc: Provisiona infraestrutura + bootstrap cluster k8s
+    deps:
+      - validate
+    cmds:
+      - task: terragrunt:apply
+      - task: bootstrap:talos
+      - task: bootstrap:addons

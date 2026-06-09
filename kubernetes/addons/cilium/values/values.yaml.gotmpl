@@ -49,7 +49,15 @@ cgroup:
 
 # devices: "^eth[0-9]+|^enp[0-9a-z]+|^ens[0-9]+"
 
+routingMode: native
+ipv4NativeRoutingCIDR: 10.244.0.0/16
+autoDirectNodeRoutes: true
+
+MTU: 1500
+
+enableIPv4Masquerade: true
 bpf:
   masquerade: true
+  hostLegacyRouting: true
 
 rollOutCiliumPods: true

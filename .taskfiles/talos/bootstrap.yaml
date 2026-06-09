@@ -1,7 +1,6 @@
 version: "3"
 
 vars:
-  # TALENV_FILE: "../talenv.yaml"
   ADDONS:
     - cilium
     - argocd
@@ -9,16 +8,20 @@ vars:
 tasks:
   talos:
     desc: Bootstrap Talos cluster
-    dir: "{{.TALOS_DIR}}"
+    dir: "{{.CLUSTERS_DIR}}"
     cmds:
       - "[ -f talsecret.sops.yaml ] || talhelper gensecret | sops --filename-override talsecret.sops.yaml --encrypt /dev/stdin > talsecret.sops.yaml"
-      - talhelper genconfig --env-file {{.TALENV_FILE}}
-      - talhelper gencommand apply --env-file {{.TALENV_FILE}} --extra-flags="--insecure" | bash
-      - until talhelper gencommand bootstrap --env-file {{.TALENV_FILE}} | bash; do sleep 20; done
-      - until talhelper gencommand kubeconfig --env-file {{.TALENV_FILE}} --extra-flags '{{.KUBECONFIG}} --force' | bash; do sleep 10; done
+      - talhelper genconfig -e {{.TALOS_DIR}}/talenv.yaml
+      - talhelper gencommand apply -e {{.TALOS_DIR}}/talenv.yaml --extra-flags="--insecure" | bash
+      - until talhelper gencommand bootstrap -e {{.TALOS_DIR}}/talenv.yaml | bash; do sleep 20; done
+      - until talhelper gencommand kubeconfig -e {{.TALOS_DIR}}/talenv.yaml --extra-flags '{{.KUBECONFIG}} --force' | bash; do sleep 10; done
+      - |
+        until kubectl --kubeconfig {{.KUBECONFIG}} get --raw=/readyz >/dev/null 2>&1; do
+          sleep 10
+        done
+      - echo "Kubernetes API disponível"
     preconditions:
-      - test -f talconfig.yaml
-      - test -f {{.TALENV_FILE}}
+      - test -f {{.CLUSTERS_DIR}}/talconfig.yaml
       - test -f {{.ROOT_DIR}}/.sops.yaml
       - test -f {{.SOPS_AGE_KEY_FILE}}
       - which talhelper talosctl sops

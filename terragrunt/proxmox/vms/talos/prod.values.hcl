@@ -1,5 +1,5 @@
 locals {
-  cluster_name = "kube-prod"
+  cluster_name = "k8s-prod"
 
   # Nodes disponíveis no cluster para distribuição das VMs
   nodes = ["pve01", "pve02", "pve03", "pve04"]
@@ -10,7 +10,7 @@ locals {
   # ISO do Talos Linux
   iso_config = {
     enabled  = true
-    iso_path = "local:iso/talos-linux-metal-amd64.iso"
+    iso_path = "local:iso/talos-metal-amd64-secureboot.iso"
   }
 
   # ============================================================
@@ -31,8 +31,8 @@ locals {
     sockets = 1
 
     disks = [{
-      size     = 100
-      storage  = "rbd"
+      size     = 15
+      storage  = "local-lvm"
       ssd      = false
       cache    = "writethrough"
       discard  = true
@@ -56,7 +56,7 @@ locals {
   }
 
   controlplanes = {
-    for i in range(1) : "${local.cluster_name}-cp${i}" => merge(
+    for i in range(3) : "${local.cluster_name}-cp${i}" => merge(
       local.controlplane_base,
       {
         node_name = local.nodes[i % length(local.nodes)]
@@ -78,7 +78,6 @@ locals {
   worker_macs = [
     "BC:24:11:AA:CC:01",
     "BC:24:11:AA:CC:02",
-    "BC:24:11:AA:CC:03",
   ]
 
   worker_base = {
@@ -113,7 +112,7 @@ locals {
   }
 
   workers = {
-    for i in range(1) : "${local.cluster_name}-wk${i}" => merge(
+    for i in range(2) : "${local.cluster_name}-wk${i}" => merge(
       local.worker_base,
       {
         node_name = local.nodes[i % length(local.nodes)]
