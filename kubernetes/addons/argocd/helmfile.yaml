@@ -1,7 +1,6 @@
 ---
 bases:
   - "../bases/helmDefaults.yaml"
-
 ---
 repositories:
   - name: argo
@@ -11,21 +10,30 @@ releases:
   - name: argocd
     namespace: argocd
     chart: argo/argo-cd
-    version: ~8.3.3
+    version: ~9.5.15
     installed: true
     labels:
       tier: deploy
     values:
       - values/values.yaml.gotmpl
     disableValidationOnInstall: true
+    hooks:
+      - events: ["postsync"]
+        command: "kubectl"
+        args:
+          - "apply"
+          - "-f"
+          - "values/addons.yaml"
 
   - name: argo-rollouts
     namespace: argo-rollouts
     chart: argo/argo-rollouts
-    version: ~2.40.3
+    version: ~2.40.9
     installed: true
     labels:
       tier: rollouts
+    needs:
+      - argocd/argocd
     values:
       - values/rollouts.yaml.gotmpl
     disableValidationOnInstall: true

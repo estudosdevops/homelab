@@ -1,0 +1,9 @@
+---
+enabled: true
+name: metrics-server
+namespace: kube-system
+
+source:
+  repoURL: https://kubernetes-sigs.github.io/metrics-server/
+  chart: metrics-server
+  targetRevision: 3.13.0

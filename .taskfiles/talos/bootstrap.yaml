@@ -1,0 +1,53 @@
+version: "3"
+
+vars:
+  ADDONS:
+    - cilium
+    - argocd
+
+tasks:
+  talos:
+    desc: Bootstrap Talos cluster
+    dir: "{{.CLUSTERS_DIR}}"
+    cmds:
+      - "[ -f talsecret.sops.yaml ] || talhelper gensecret | sops --filename-override talsecret.sops.yaml --encrypt /dev/stdin > talsecret.sops.yaml"
+      - talhelper genconfig -e {{.TALOS_DIR}}/talenv.yaml
+      - talhelper gencommand apply -e {{.TALOS_DIR}}/talenv.yaml --extra-flags="--insecure" | bash
+      - until talhelper gencommand bootstrap -e {{.TALOS_DIR}}/talenv.yaml | bash; do sleep 20; done
+      - until talhelper gencommand kubeconfig -e {{.TALOS_DIR}}/talenv.yaml --extra-flags '{{.KUBECONFIG}} --force' | bash; do sleep 10; done
+      - |
+        until kubectl --kubeconfig {{.KUBECONFIG}} get --raw=/readyz >/dev/null 2>&1; do
+          sleep 10
+        done
+      - echo "Kubernetes API disponível"
+    preconditions:
+      - test -f {{.CLUSTERS_DIR}}/talconfig.yaml
+      - test -f {{.ROOT_DIR}}/.sops.yaml
+      - test -f {{.SOPS_AGE_KEY_FILE}}
+      - which talhelper talosctl sops
+
+  addons:
+    desc: Instala Addons no cluster
+    cmds:
+      - for: { var: ADDONS }
+        task: addon-cmd
+        vars: { ADDON: "{{.ITEM}}", HELM_CMD: "diff" }
+      - task: addon-sync-confirm
+    preconditions:
+      - which helmfile
+
+  addon-sync-confirm:
+    internal: true
+    prompt: Deseja continuar com o sync dos addons?
+    cmds:
+      - for: { var: ADDONS }
+        task: addon-cmd
+        vars: { ADDON: "{{.ITEM}}", HELM_CMD: "sync" }
+
+  addon-cmd:
+    internal: true
+    dir: "{{.ADDONS_DIR}}/{{.ADDON}}"
+    env:
+      KUBECONFIG: "{{.KUBECONFIG}}"
+    cmds:
+      - helmfile {{.HELM_CMD}}

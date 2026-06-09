@@ -1,11 +1,27 @@
-min_version = "2026.4.12"
+# Tools
+[tools]
+go = "1.26"
+gh = "latest"
+helm = "latest"
+shfmt = "latest"
+aws-cli = "latest"
+kubectl = "latest"
+talosctl = "latest"
+helmfile = "latest"
+terraform = "latest"
+shellcheck = "latest"
+terragrunt = "latest"
+pre-commit = "latest"
+"aqua:helm/helm" = "latest"
+"aqua:jqlang/jq" = "latest"
+"aqua:mikefarah/yq" = "latest"
+"aqua:go-task/task" = "latest"
+"aqua:getsops/sops" = "latest"
+"aqua:FiloSottile/age" = "latest"
+"aqua:cilium/cilium-cli" = "latest"
+"aqua:helmfile/helmfile" = "latest"
+"aqua:budimanjojo/talhelper" = "latest"
 
-[env]
-ANSIBLE_HOST_KEY_CHECKING = "False"
-
-[vars]
-playbook_dir = "ansible/playbooks"
-inventory_dir = "ansible/inventories"
-
-[task_config]
-includes = ["tasks.toml"]
+# Settings
+[settings]
+idiomatic_version_file_enable_tools = ["node"]

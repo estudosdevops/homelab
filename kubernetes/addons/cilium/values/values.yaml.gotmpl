@@ -2,19 +2,62 @@
 operator:
   replicas: 1
 
+ipam:
+  mode: kubernetes
+
 kubeProxyReplacement: true
+
+k8sServiceHost: {{ env "K8S_API_HOST" | default "192.168.20.10" }}
+k8sServicePort: {{ env "K8S_API_PORT" | default "6443" }}
+
+gatewayAPI:
+  enabled: true
 
 l2announcements:
   enabled: true
-  # TODO the host and port are k3s-specific, generic solution is in progress
-  # https://github.com/cilium/cilium/issues/19038
-  # https://github.com/cilium/cilium/pull/28741
-
-k8sServiceHost: 127.0.0.1
-k8sServicePort: 6444
 
 hubble:
+  enabled: true
   relay:
     enabled: true
   ui:
     enabled: true
+
+securityContext:
+  capabilities:
+    ciliumAgent:
+      - CHOWN
+      - KILL
+      - NET_ADMIN
+      - NET_RAW
+      - IPC_LOCK
+      - SYS_ADMIN
+      - SYS_RESOURCE
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+    cleanCiliumState:
+      - NET_ADMIN
+      - SYS_ADMIN
+      - SYS_RESOURCE
+
+cgroup:
+  autoMount:
+    enabled: false
+  hostRoot: /sys/fs/cgroup
+
+# devices: "^eth[0-9]+|^enp[0-9a-z]+|^ens[0-9]+"
+
+routingMode: native
+ipv4NativeRoutingCIDR: 10.244.0.0/16
+autoDirectNodeRoutes: true
+
+MTU: 1500
+
+enableIPv4Masquerade: true
+bpf:
+  masquerade: true
+  hostLegacyRouting: true
+
+rollOutCiliumPods: true

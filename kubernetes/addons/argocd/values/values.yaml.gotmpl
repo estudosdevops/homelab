@@ -44,15 +44,13 @@ configs:
     policy.default: role:""
 
 server:
-  ingress:
+  httproute:
     enabled: true
-    ingressClassName: nginx
-    annotations:
-      cert-manager.io/cluster-issuer: homelab-ca-issuer
-    extraTls:
-      - hosts:
-        - argocd.homelab.tech
-        secretName: wildcard-tls
+    parentRefs:
+      - name: edge
+        namespace: gateway-system
+    hostnames:
+      - argocd.homelab.tech
 
   extensions:
     enabled: true
@@ -81,6 +79,7 @@ applicationSet:
     enabled: false
 
 notifications:
+  enabled: false
   metrics:
     enabled: false
 

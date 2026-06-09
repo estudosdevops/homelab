@@ -1,0 +1,76 @@
+---
+clusterName: prod
+
+talosVersion: "${talosVersion}"
+kubernetesVersion: "${kubernetesVersion}"
+
+endpoint: https://192.168.20.15:6443
+
+additionalApiServerCertSans: &sans
+  - 127.0.0.1
+  - 192.168.20.15
+additionalMachineCertSans: *sans
+
+clusterPodNets:
+  - 10.244.0.0/16
+clusterSvcNets:
+  - 10.96.0.0/12
+
+# Disable built-in CNI to use Cilium
+cniConfig:
+  name: none
+
+nodes:
+  - hostname: k8s-prod-cp0
+    ipAddress: 192.168.20.10
+    controlPlane: true
+    installDisk: /dev/sda
+    talosImageURL: factory.talos.dev/metal-installer-secureboot/ce4c980550dd2ab1b17bbf2b08801c7eb59418eafe8f279833297925d67c7515
+    networkInterfaces: &controlplane
+      - interface: ens18
+        dhcp: true
+        mtu: 1500
+        vip:
+          ip: 192.168.20.15
+
+  - hostname: k8s-prod-cp1
+    ipAddress: 192.168.20.11
+    controlPlane: true
+    installDisk: /dev/sda
+    talosImageURL: factory.talos.dev/metal-installer-secureboot/ce4c980550dd2ab1b17bbf2b08801c7eb59418eafe8f279833297925d67c7515
+    networkInterfaces: *controlplane
+
+  - hostname: k8s-prod-cp2
+    ipAddress: 192.168.20.12
+    controlPlane: true
+    installDisk: /dev/sda
+    talosImageURL: factory.talos.dev/metal-installer-secureboot/ce4c980550dd2ab1b17bbf2b08801c7eb59418eafe8f279833297925d67c7515
+    networkInterfaces: *controlplane
+
+  - hostname: k8s-prod-wk0
+    ipAddress: 192.168.20.13
+    controlPlane: false
+    installDisk: /dev/sda
+    talosImageURL: factory.talos.dev/metal-installer-secureboot/ce4c980550dd2ab1b17bbf2b08801c7eb59418eafe8f279833297925d67c7515
+    networkInterfaces: &workers
+      - interface: ens18
+        dhcp: true
+        mtu: 1500
+
+  - hostname: kube-prod-wk1
+    ipAddress: 192.168.20.14
+    controlPlane: false
+    installDisk: /dev/sda
+    talosImageURL: factory.talos.dev/metal-installer-secureboot/ce4c980550dd2ab1b17bbf2b08801c7eb59418eafe8f279833297925d67c7515
+    networkInterfaces: *workers
+
+patches:
+  - "@../../patches/global/machine-files.yaml"
+  - "@../../patches/global/machine-kubelet.yaml"
+  - "@../../patches/global/machine-sysctls.yaml"
+  - "@../../patches/global/machine-time.yaml"
+
+controlPlane:
+  patches:
+    - "@../../patches/controller/admission-controller-patch.yaml"
+    - "@../../patches/controller/cluster.yaml"

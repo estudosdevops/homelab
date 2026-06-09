@@ -1,0 +1,52 @@
+---
+version: "3"
+
+set: [pipefail]
+shopt: [globstar]
+
+vars:
+  CLUSTER: '{{.CLUSTER | default "prod"}}'
+
+  VALID_CLUSTERS:
+    - prod
+    - stg
+    - sdx
+
+  TALOS_DIR: "{{.ROOT_DIR}}/talos"
+  ADDONS_DIR: "{{.ROOT_DIR}}/kubernetes/addons"
+  TG_DIR: "{{.ROOT_DIR}}/terragrunt/proxmox/vms/talos"
+  CLUSTERS_DIR: "{{.ROOT_DIR}}/talos/clusters/{{.CLUSTER}}"
+  KUBECONFIG: "{{.CLUSTERS_DIR}}/kubeconfig"
+  TALOSCONFIG: "{{.CLUSTERS_DIR}}/clusterconfig/talosconfig"
+
+env:
+  TALOSCONFIG: "{{.TALOSCONFIG}}"
+  KUBECONFIG: "{{.KUBECONFIG}}"
+  SOPS_AGE_KEY_FILE: "{{.ROOT_DIR}}/age.key"
+
+includes:
+  talos: .taskfiles/talos/talos.yaml
+  terragrunt: .taskfiles/talos/terragrunt.yaml
+  bootstrap: .taskfiles/talos/bootstrap.yaml
+
+tasks:
+  default:
+    cmds:
+      - task --list
+
+  validate:
+    internal: true
+    requires:
+      vars:
+        - name: CLUSTER
+          enum:
+            ref: .VALID_CLUSTERS
+
+  talos:create-k8s:
+    desc: Provisiona infraestrutura + bootstrap cluster k8s
+    deps:
+      - validate
+    cmds:
+      - task: terragrunt:apply
+      - task: bootstrap:talos
+      - task: bootstrap:addons
