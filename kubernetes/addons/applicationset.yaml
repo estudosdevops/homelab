@@ -29,21 +29,39 @@ spec:
       destination:
         server: "{{ .server }}"
         namespace: "{{ .namespace }}"
-      sources:
-        - repoURL: "{{ .source.repoURL }}"
-          chart: "{{ .source.chart }}"
-          targetRevision: "{{ .source.targetRevision }}"
-          helm:
-            valueFiles:
-              - "$values/kubernetes/addons/{{ .name }}/values/common.yaml"
-              - "$values/kubernetes/addons/{{ .name }}/values/{{ .name }}.yaml"
-            ignoreMissingValueFiles: true
-        - repoURL: https://github.com/estudosdevops/homelab.git
-          targetRevision: refactor/homelab
-          ref: values
+      source:
+        repoURL: https://github.com/estudosdevops/homelab.git
+        targetRevision: refactor/homelab
+        path: kubernetes/addons/{{ .name }}
+
+        helm:
+          valueFiles:
+            - values/common.yaml
+            - values/{{ .clusterName }}.yaml
+          ignoreMissingValueFiles: true
+
       syncPolicy:
         automated:
           prune: true
           selfHeal: true
         syncOptions:
           - CreateNamespace=true
+
+#      sources:
+#        - repoURL: https://github.com/estudosdevops/homelab.git
+#          chart: "{{ .source.chart }}"
+#          targetRevision: "{{ .source.targetRevision }}"
+#          helm:
+#            valueFiles:
+#              - "$values/kubernetes/addons/{{ .name }}/values/common.yaml"
+#              - "$values/kubernetes/addons/{{ .name }}/values/{{ .name }}.yaml"
+#            ignoreMissingValueFiles: true
+#        - repoURL: https://github.com/estudosdevops/homelab.git
+#          targetRevision: refactor/homelab
+#          ref: values
+#      syncPolicy:
+#        automated:
+#          prune: true
+#          selfHeal: true
+#        syncOptions:
+#          - CreateNamespace=true
