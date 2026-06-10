@@ -8,12 +8,13 @@ metadata:
     argocd.argoproj.io/sync-wave: "3"
 spec:
   secretName: wildcard-tls
-  commonName: "*.{{ .Values.certManager.domain }}"
+  commonName: "*.homelab.tech"
   dnsNames:
-    - "*.{{ .Values.certManager.domain }}"
-    - "{{ .Values.certManager.domain }}"
+    - "*.homelab.tech"
+    - homelab.tech
   duration: 8760h
   renewBefore: 720h
   issuerRef:
     name: homelab-ca-issuer
     kind: ClusterIssuer
+

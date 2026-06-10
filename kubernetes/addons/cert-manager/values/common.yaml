@@ -1,5 +1,5 @@
+---
 cert-manager:
-  domain: homelab.tech
   namespace: cert-manager
   installCRDs: true
 
