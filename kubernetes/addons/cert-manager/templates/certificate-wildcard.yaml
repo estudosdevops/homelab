@@ -1,0 +1,19 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: wildcard-cert
+  namespace: {{ .Values.certManager.namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  secretName: wildcard-tls
+  commonName: "*.{{ .Values.certManager.domain }}"
+  dnsNames:
+    - "*.{{ .Values.certManager.domain }}"
+    - "{{ .Values.certManager.domain }}"
+  duration: 8760h
+  renewBefore: 720h
+  issuerRef:
+    name: homelab-ca-issuer
+    kind: ClusterIssuer
