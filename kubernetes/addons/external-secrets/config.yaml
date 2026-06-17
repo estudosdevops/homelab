@@ -1,3 +1,5 @@
 ---
 name: external-secrets
 namespace: external-secrets
+
+serverSideApply: true
