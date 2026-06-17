@@ -39,8 +39,4 @@ spec:
         automated:
           prune: true
           selfHeal: true
-        syncOptions:
-          - CreateNamespace=true
-          {{ if .serverSideApply -}}
-          - ServerSideApply=true
-          {{ end -}}
+        syncOptions: { { - toYaml .syncOptions | nindent 10 } }
