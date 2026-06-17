@@ -46,6 +46,4 @@ spec:
           selfHeal: true
         syncOptions:
           - CreateNamespace=true
-          {{- if .serverSideApply }}
-          - ServerSideApply=true
-          {{- end }}
+          {{ " - ServerSideApply=true" | if .serverSideApply }}
