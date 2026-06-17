@@ -14,9 +14,6 @@ spec:
               files:
                 - path: kubernetes/addons/*/config.yaml
           - clusters: {}
-              # selector:
-              #  matchLabels:
-              #    addons: enabled
   template:
     metadata:
       name: "{{ .name }}"
@@ -32,18 +29,18 @@ spec:
       source:
         repoURL: https://github.com/estudosdevops/homelab.git
         targetRevision: refactor/homelab
-        path: kubernetes/addons/{{ .name }}
-
+        path: "kubernetes/addons/{{ .name }}"
         helm:
           valueFiles:
             - values/common.yaml
-            - values/{{ .clusterName }}.yaml
+            - "values/{{ .clusterName }}.yaml"
           ignoreMissingValueFiles: true
-
       syncPolicy:
         automated:
           prune: true
           selfHeal: true
         syncOptions:
           - CreateNamespace=true
-          {{ " - ServerSideApply=true" | if .serverSideApply }}
+          {{ if .serverSideApply -}}
+          - ServerSideApply=true
+          {{ end -}}
