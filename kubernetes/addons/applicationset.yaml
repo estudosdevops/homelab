@@ -9,7 +9,7 @@ spec:
     - matrix:
         generators:
           - git:
-              repoURL: https://github.com/estudosdevops/homelab.git
+              repoURL: https://github.com
               revision: refactor/homelab
               files:
                 - path: kubernetes/addons/*/config.yaml
@@ -30,7 +30,7 @@ spec:
         server: "{{ .server }}"
         namespace: "{{ .namespace }}"
       source:
-        repoURL: https://github.com/estudosdevops/homelab.git
+        repoURL: https://github.com
         targetRevision: refactor/homelab
         path: kubernetes/addons/{{ .name }}
 
@@ -46,6 +46,4 @@ spec:
           selfHeal: true
         syncOptions:
           - CreateNamespace=true
-          {{- if .serverSideApply }}
-          - ServerSideApply=true
-          {{- end }}
+{{ if .serverSideApply }}          - ServerSideApply=true{{ end }}
