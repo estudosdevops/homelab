@@ -2,4 +2,5 @@
 name: external-secrets
 namespace: external-secrets
 
+# ArgoCD ApplicationSet parameters
 serverSideApply: true
