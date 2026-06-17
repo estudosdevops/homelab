@@ -40,4 +40,4 @@ spec:
           prune: true
           selfHeal: true
         syncOptions:
-{{ toYaml .syncOptions | nindent 10 }}
+{{ toYaml .syncOptions | indent 10 }}
