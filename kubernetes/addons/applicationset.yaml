@@ -39,4 +39,5 @@ spec:
         automated:
           prune: true
           selfHeal: true
-        syncOptions: { { - toYaml .syncOptions | nindent 10 } }
+        syncOptions:
+{{ toYaml .syncOptions | nindent 10 }}
