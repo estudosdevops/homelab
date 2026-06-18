@@ -40,4 +40,12 @@ spec:
           prune: true
           selfHeal: true
         syncOptions:
-{{ toYaml .syncOptions | indent 10 }}
+          - CreateNamespace=true
+  templatePatch: |
+    {{- if .serverSideApply }}
+    spec:
+      syncPolicy:
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true
+    {{- end }}

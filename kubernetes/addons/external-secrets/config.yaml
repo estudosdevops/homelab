@@ -3,6 +3,4 @@ name: external-secrets
 namespace: external-secrets
 
 # ArgoCD ApplicationSet parameters
-syncOptions:
-  - CreateNamespace=true
-  - ServerSideApply=true
+serverSideApply: true
