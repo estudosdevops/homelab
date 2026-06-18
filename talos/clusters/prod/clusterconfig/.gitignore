@@ -4,3 +4,4 @@ prod-k8s-prod-cp2.yaml
 prod-k8s-prod-wk0.yaml
 prod-kube-prod-wk1.yaml
 talosconfig
+prod-k8s-prod-wk1.yaml
