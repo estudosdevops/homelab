@@ -42,8 +42,8 @@ spec:
         syncOptions:
           - CreateNamespace=true
   templatePatch: |
-    {{- if or .extraSyncOptions .annotations }}
     metadata:
+      name: "{{ .name }}"
       {{- if .annotations }}
       annotations:
         {{- range $k, $v := .annotations }}
@@ -52,9 +52,14 @@ spec:
       {{- end }}
     spec:
       syncPolicy:
+        {{- if .extraSyncOptions }}
         syncOptions:
           - CreateNamespace=true
           {{- range .extraSyncOptions }}
           - {{ . }}
           {{- end }}
-    {{- end }}
+        {{- end }}
+        {{- if .retry }}
+        retry:
+          {{- toYaml .retry | nindent 10 }}
+        {{- end }}
