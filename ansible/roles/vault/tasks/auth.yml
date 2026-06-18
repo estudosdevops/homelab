@@ -1,0 +1,18 @@
+---
+- name: Check if userpass auth is enabled
+  community.hashi_vault.vault_read:
+    path: sys/auth
+  register: vault_auth_methods
+  become: false
+  run_once: true
+  delegate_to: localhost
+
+- name: Enable UserPass auth
+  community.hashi_vault.vault_write:
+    path: sys/auth/userpass
+    data:
+      type: userpass
+  become: false
+  run_once: true
+  delegate_to: localhost
+  when: "'userpass/' not in vault_auth_methods.data.data"

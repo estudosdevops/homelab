@@ -71,6 +71,11 @@ mikrotik_dhcp_reservations:
     server: homelab
     comment: "ansible:reserved - k8s-prod-wk1"
 
+  - address: 192.168.20.20
+    mac-address: "BC:24:11:CC:DD:01"
+    server: homelab
+    comment: "ansible:reserved - vault-0"
+
 mikrotik_homelab_allowed_hosts:
   - 192.168.10.143
 

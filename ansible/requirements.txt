@@ -1,0 +1,4 @@
+ansible-core>=2.18,<2.20
+hvac>=2.4,<3.0
+jmespath
+netaddr

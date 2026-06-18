@@ -1,0 +1,16 @@
+---
+- name: Install and Configure
+  ansible.builtin.import_tasks: install.yml
+  tags: [vault, install]
+
+- name: Enable userpass auth
+  ansible.builtin.import_tasks: auth.yml
+  tags: [vault, auth]
+
+- name: Create policies
+  ansible.builtin.import_tasks: policies.yml
+  tags: [vault, policies]
+
+- name: Create users
+  ansible.builtin.import_tasks: users.yml
+  tags: [vault, users]

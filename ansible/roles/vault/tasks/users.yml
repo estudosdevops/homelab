@@ -1,0 +1,26 @@
+---
+- name: Check if users exist
+  community.hashi_vault.vault_read:
+    path: "auth/userpass/users/{{ item.username }}"
+  register: vault_user_check
+  failed_when: false
+  loop: "{{ vault_users }}"
+  loop_control:
+    label: "{{ item.username }}"
+  delegate_to: localhost
+  run_once: true
+  become: false
+
+- name: Create Vault users
+  community.hashi_vault.vault_write:
+    path: "auth/userpass/users/{{ item.item.username }}"
+    data:
+      password: "{{ vault_users_password[item.item.username] }}"
+      token_policies: "{{ item.item.policies | join(',') }}"
+  loop: "{{ vault_user_check.results }}"
+  loop_control:
+    label: "{{ item.item.username }}"
+  when: item.data is not defined
+  delegate_to: localhost
+  run_once: true
+  become: false

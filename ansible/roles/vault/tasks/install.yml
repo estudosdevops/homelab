@@ -1,0 +1,51 @@
+---
+- name: Install dependencies
+  apt:
+    name:
+      - curl
+      - gpg
+    state: present
+    update_cache: true
+
+- name: Add Hashicorp key
+  shell: |
+    wget -O - https://apt.releases.hashicorp.com/gpg \
+    | gpg --dearmor \
+    | tee /usr/share/keyrings/hashicorp-archive-keyring.gpg >/dev/null
+  args:
+    creates: /usr/share/keyrings/hashicorp-archive-keyring.gpg
+
+- name: Add Hashicorp repository
+  apt_repository:
+    repo: "deb [arch=amd64 signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com noble main"
+    filename: hashicorp
+    state: present
+
+- name: Install Vault
+  apt:
+    name: vault
+    state: present
+    update_cache: true
+
+- name: Create data directory
+  file:
+    path: "{{ vault_data_dir }}"
+    state: directory
+    owner: vault
+    group: vault
+    mode: "0750"
+
+- name: Configure Vault
+  template:
+    src: vault.hcl.j2
+    dest: /etc/vault.d/vault.hcl
+    owner: vault
+    group: vault
+    mode: "0640"
+  notify: restart vault
+
+- name: Enable service
+  service:
+    name: vault
+    enabled: true
+    state: started

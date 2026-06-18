@@ -1,0 +1,12 @@
+---
+- name: Create or update policies
+  community.hashi_vault.vault_write:
+    path: "sys/policies/acl/{{ item.name }}"
+    data:
+      policy: "{{ item.rules }}"
+  loop: "{{ vault_policies }}"
+  loop_control:
+    label: "{{ item.name }}"
+  become: false
+  run_once: true
+  delegate_to: localhost

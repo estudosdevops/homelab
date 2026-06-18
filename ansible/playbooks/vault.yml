@@ -1,0 +1,19 @@
+---
+- name: Configure Vault Cluster
+  hosts: vault
+  become: true
+  gather_facts: true
+
+  module_defaults:
+    community.hashi_vault.vault_read:
+      url: "{{ vault_addr }}"
+      token: "{{ vault_token }}"
+
+    community.hashi_vault.vault_write:
+      url: "{{ vault_addr }}"
+      token: "{{ vault_token }}"
+
+  tasks:
+    - name: Apply vault role
+      ansible.builtin.import_role:
+        name: vault
