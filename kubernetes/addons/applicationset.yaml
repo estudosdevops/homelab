@@ -42,10 +42,25 @@ spec:
         syncOptions:
           - CreateNamespace=true
   templatePatch: |
-    {{- if .serverSideApply }}
+    {{- if or .extraSyncOptions .annotations .retry }}
+    metadata:
+      {{- if .annotations }}
+      annotations:
+        {{- range $k, $v := .annotations }}
+        {{ $k }}: "{{ $v }}"
+        {{- end }}
+      {{- end }}
     spec:
       syncPolicy:
+        {{- if .extraSyncOptions }}
         syncOptions:
           - CreateNamespace=true
-          - ServerSideApply=true
+          {{- range .extraSyncOptions }}
+          - {{ . }}
+          {{- end }}
+        {{- end }}
+        {{- if .retry }}
+        retry:
+          {{- toYaml .retry | nindent 10 }}
+        {{- end }}
     {{- end }}
