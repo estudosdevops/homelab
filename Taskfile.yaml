@@ -6,7 +6,7 @@ shopt: [globstar]
 
 vars:
   CLUSTER: '{{.CLUSTER | default "prod"}}'
-
+  VM_NAME: '{{.VM_NAME | default "ubuntu22"}}'
   VALID_CLUSTERS:
     - prod
     - stg
@@ -14,7 +14,6 @@ vars:
 
   TALOS_DIR: "{{.ROOT_DIR}}/talos"
   ADDONS_DIR: "{{.ROOT_DIR}}/kubernetes/addons"
-  TG_DIR: "{{.ROOT_DIR}}/terragrunt/proxmox/vms/talos"
   CLUSTERS_DIR: "{{.ROOT_DIR}}/talos/clusters/{{.CLUSTER}}"
   KUBECONFIG: "{{.CLUSTERS_DIR}}/kubeconfig"
   TALOSCONFIG: "{{.CLUSTERS_DIR}}/clusterconfig/talosconfig"
@@ -25,8 +24,9 @@ env:
   SOPS_AGE_KEY_FILE: "{{.ROOT_DIR}}/age.key"
 
 includes:
+  ansible: .taskfiles/ansible.yaml
   talos: .taskfiles/talos/talos.yaml
-  terragrunt: .taskfiles/talos/terragrunt.yaml
+  terragrunt: .taskfiles/terragrunt.yaml
   bootstrap: .taskfiles/talos/bootstrap.yaml
 
 tasks:

@@ -21,7 +21,7 @@ tasks:
         done
       - echo "Kubernetes API disponível"
     preconditions:
-      - test -f {{.CLUSTERS_DIR}}/talconfig.yaml
+      - test -f talconfig.yaml
       - test -f {{.ROOT_DIR}}/.sops.yaml
       - test -f {{.SOPS_AGE_KEY_FILE}}
       - which talhelper talosctl sops

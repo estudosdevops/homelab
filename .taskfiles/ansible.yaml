@@ -1,0 +1,29 @@
+version: "3"
+
+tasks:
+  init:
+    desc: Setup Ansible environment
+    dir: "{{.ROOT_DIR}}/ansible"
+    cmds:
+      - pip install --break-system-packages -r requirements.txt
+      - ansible-galaxy collection install -r requirements.yml
+
+  dry-run:
+    desc: Executa playbook em modo check
+    requires:
+      vars: [playbook]
+    dir: "{{.ROOT_DIR}}/ansible"
+    cmds:
+      - ansible-playbook playbooks/{{.playbook}}.yml --check --diff
+    preconditions:
+      - test -f playbooks/{{.playbook}}.yml
+
+  run:
+    desc: Executa playbook
+    requires:
+      vars: [playbook]
+    dir: "{{.ROOT_DIR}}/ansible"
+    cmds:
+      - ansible-playbook playbooks/{{.playbook}}.yml
+    preconditions:
+      - test -f playbooks/{{.playbook}}.yml
