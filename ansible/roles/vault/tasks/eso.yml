@@ -1,0 +1,92 @@
+---
+- name: Configure Vault Kubernetes Auth for External Secrets
+  block:
+    - name: Create Vault auth ServiceAccount
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: ServiceAccount
+          metadata:
+            name: vault-auth
+            namespace: external-secrets
+
+    - name: Allow TokenReview for Vault auth ServiceAccount
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: rbac.authorization.k8s.io/v1
+          kind: ClusterRoleBinding
+          metadata:
+            name: vault-token-review
+          roleRef:
+            apiGroup: rbac.authorization.k8s.io
+            kind: ClusterRole
+            name: system:auth-delegator
+          subjects:
+            - kind: ServiceAccount
+              name: vault-auth
+              namespace: external-secrets
+
+    - name: Generate reviewer token
+      ansible.builtin.command:
+        cmd: >
+          kubectl create token vault-auth
+          -n external-secrets
+          --duration=8760h
+      register: vault_reviewer_token
+      changed_when: false
+
+    - name: Get Kubernetes API server
+      kubernetes.core.k8s_cluster_info:
+      register: k8s_info
+
+    - name: Get cluster CA
+      kubernetes.core.k8s_info:
+        api_version: v1
+        kind: ConfigMap
+        namespace: kube-system
+        name: kube-root-ca.crt
+      register: cluster_ca
+
+    - name: Configure Kubernetes auth config
+      community.hashi_vault.vault_write:
+        path: auth/kubernetes/config
+        data:
+          kubernetes_host: "{{ k8s_info.connection.host }}"
+          kubernetes_ca_cert: "{{ cluster_ca.resources[0].data['ca.crt'] }}"
+          token_reviewer_jwt: "{{ vault_reviewer_token.stdout }}"
+
+    - name: Create External Secrets role
+      community.hashi_vault.vault_write:
+        path: auth/kubernetes/role/external-secrets
+        data:
+          bound_service_account_names: external-secrets
+          bound_service_account_namespaces: external-secrets
+          token_policies: eso-prod
+          token_ttl: 1h
+
+    - name: Create ClusterSecretStore
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: external-secrets.io/v1
+          kind: ClusterSecretStore
+          metadata:
+            name: vault
+          spec:
+            provider:
+              vault:
+                server: http://192.168.20.20:8200
+                path: prod
+                version: v2
+                auth:
+                  kubernetes:
+                    mountPath: kubernetes
+                    role: external-secrets
+                    serviceAccountRef:
+                      name: external-secrets
+                      namespace: external-secrets
+  delegate_to: localhost
+  run_once: true
+  become: false

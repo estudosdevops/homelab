@@ -23,3 +23,12 @@ vault_policies:
           "sudo"
         ]
       }
+  - name: eso-prod
+    rules: |
+      path "prod/data/*" {
+        capabilities = ["read"]
+      }
+
+      path "prod/metadata/*" {
+        capabilities = ["read", "list"]
+      }

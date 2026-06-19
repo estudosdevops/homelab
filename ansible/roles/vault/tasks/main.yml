@@ -14,3 +14,7 @@
 - name: Create users
   ansible.builtin.import_tasks: users.yml
   tags: [vault, users]
+
+- name: Configure external secrets
+  ansible.builtin.import_tasks: eso.yml
+  tags: [vault, eso]
