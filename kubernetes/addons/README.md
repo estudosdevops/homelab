@@ -4,11 +4,11 @@
 
 Este documento descreve como os addons do Kubernetes são gerenciados através de GitOps utilizando ArgoCD, ApplicationSet e Renovate.
 
-# Visão Geral
+## Visão Geral
 
 O repositório é a única fonte de verdade (Source of Truth) para toda a configuração do cluster. Nenhuma alteração deve ser aplicada manualmente diretamente no Kubernetes. Todo o ciclo de vida dos addons ocorre através de Pull Requests e sincronização automática realizada pelo ArgoCD.
 
-# Estrutura dos Addons
+### Estrutura dos Addons
 
 ```text
 kubernetes/
@@ -37,7 +37,7 @@ Cada addon possui:
 * Valores compartilhados (`common.yaml`)
 * Valores específicos por cluster (`<cluster>.yaml`)
 
-# ApplicationSet
+### ApplicationSet
 
 O ArgoCD utiliza um único ApplicationSet para descobrir automaticamente os addons existentes. O generator lê todos os arquivos:
 
@@ -54,7 +54,7 @@ Benefícios:
 * Mantém padronização entre addons.
 * Reduz manutenção operacional.
 
-# Fluxo
+### Fluxo
 
 <details>
   <summary>Fluxo de sincronização</summary>
@@ -90,7 +90,7 @@ flowchart TD
 ```
 </details>
 
-# Atualização de Versões
+### Atualização de Versões
 
 As versões dos charts Helm são monitoradas automaticamente pelo Renovate, quando uma nova versão é disponibilizada:
 
@@ -101,7 +101,7 @@ As versões dos charts Helm são monitoradas automaticamente pelo Renovate, quan
 5. O merge é realizado.
 6. Argo CD sincroniza automaticamente.
 
-# Fluxo de Atualização com Renovate
+### Fluxo de Atualização com Renovate
 
 <details>
   <summary>Fluxo Renovate → Argo CD</summary>
@@ -142,7 +142,7 @@ flowchart TD
 ```
 </details>
 
-# Validações
+### Validações
 
 Antes de qualquer alteração ser aplicada ao cluster, os manifests passam por validações automáticas.
 
@@ -160,7 +160,7 @@ Objetivos:
 * Detectar APIs removidas na versão alvo do cluster
 * Visualizar mudanças antes do merge
 
-# Benefícios da Arquitetura
+### Benefícios da Arquitetura
 
 * Git como fonte única de verdade.
 * Deploys reproduzíveis.
