@@ -36,7 +36,7 @@ spec:
           - path: kubernetes/addons/*/config.yaml
   template:
     metadata:
-      name: "{{ .name }}"
+      name: "{{ .name }}-appset"
       labels:
         app.kubernetes.io/part-of: addons
         app.kubernetes.io/managed-by: addons-generation
