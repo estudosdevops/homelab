@@ -21,7 +21,7 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: addons-generation
+  name: addons-root
   namespace: argocd
   labels:
     app.kubernetes.io/name: addons
@@ -32,13 +32,11 @@ spec:
     - git:
         repoURL: https://github.com/estudosdevops/homelab.git
         revision: refactor/homelab
-        directories:
-          - path: kubernetes/addons/*
-          - path: kubernetes/addons/manager
-            exclude: true
+        files:
+          - path: kubernetes/addons/*/config.yaml
   template:
     metadata:
-      name: "{{ .path.basename }}-appset"
+      name: "{{ .name }}-appset"
       labels:
         app.kubernetes.io/part-of: addons
         app.kubernetes.io/managed-by: addons-root
@@ -51,7 +49,7 @@ spec:
         helm:
           parameters:
             - name: addonName
-              value: "{{ .path.basename }}"
+              value: "{{ .name }}"
       destination:
         server: https://kubernetes.default.svc
         namespace: argocd
