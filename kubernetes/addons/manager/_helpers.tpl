@@ -13,7 +13,7 @@ spec:
               repoURL: https://github.com/estudosdevops/homelab.git
               revision: refactor/homelab
               files:
-                - path: kubernetes/addons/**/config.yaml
+                - path: kubernetes/addons/*/config.yaml
           - clusters: {}
   template:
     metadata:
