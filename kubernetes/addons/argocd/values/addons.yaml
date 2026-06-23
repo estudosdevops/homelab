@@ -23,6 +23,8 @@ kind: Application
 metadata:
   name: addons
   namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
   labels:
     app.kubernetes.io/name: addons
     app.kubernetes.io/managed-by: argocd
