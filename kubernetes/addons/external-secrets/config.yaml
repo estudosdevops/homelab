@@ -1,7 +1,0 @@
----
-name: external-secrets
-namespace: external-secrets
-
-# ArgoCD ApplicationSet parameters
-extraSyncOptions:
-  - ServerSideApply=true
