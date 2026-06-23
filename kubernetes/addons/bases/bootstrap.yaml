@@ -21,7 +21,7 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: addons-root
+  name: addons-generation
   namespace: argocd
   labels:
     app.kubernetes.io/name: addons
@@ -36,10 +36,10 @@ spec:
           - path: kubernetes/addons/*/config.yaml
   template:
     metadata:
-      name: "{{ .name }}-appset"
+      name: "{{ .name }}"
       labels:
         app.kubernetes.io/part-of: addons
-        app.kubernetes.io/managed-by: addons-root
+        app.kubernetes.io/managed-by: addons-generation
     spec:
       project: addons-of-addons
       source:
