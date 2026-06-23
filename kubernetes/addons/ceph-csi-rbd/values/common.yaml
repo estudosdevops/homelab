@@ -10,6 +10,7 @@ csiDriver:
   name: rbd.csi.ceph.com
   attachRequired: true
   podInfoOnMount: false
+  seLinuxMount: false
 
 storageClass:
   create: true
@@ -20,7 +21,7 @@ storageClass:
 
 nodeplugin:
   httpMetrics:
-  enabled: false
+    enabled: false
 
 provisioner:
   name: provisioner
