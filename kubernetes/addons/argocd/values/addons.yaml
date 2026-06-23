@@ -2,7 +2,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
 metadata:
-  name: addons
+  name: addons-of-addons
   namespace: argocd
   labels:
     app.kubernetes.io/name: addons
@@ -21,15 +21,15 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: addons
+  name: addons-of-addons
   namespace: argocd
   finalizers:
-    - resources-finalizer.argocd.argoproj.io
+    - argocd.argoproj.io/resources-finalizer
   labels:
     app.kubernetes.io/name: addons
     app.kubernetes.io/managed-by: argocd
 spec:
-  project: addons
+  project: addons-of-addons
   source:
     repoURL: https://github.com/estudosdevops/homelab.git
     targetRevision: refactor/homelab
