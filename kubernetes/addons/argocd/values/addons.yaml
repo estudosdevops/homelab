@@ -33,7 +33,7 @@ spec:
   source:
     repoURL: https://github.com/estudosdevops/homelab.git
     targetRevision: refactor/homelab
-    path: kubernetes/addons
+    path: kubernetes/addons/manager
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd
