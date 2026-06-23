@@ -32,3 +32,6 @@ provisioner:
   priorityClassName: system-cluster-critical
   timeout: 60s
   setmetadata: true
+  httpMetrics:
+    service:
+      enabled: false
