@@ -1,5 +1,5 @@
 apiVersion: v2
-name: ceph-csi
+name: ceph-csi-rbd
 description: A Helm chart for Ceph CSI
 type: application
 version: 0.1.0
