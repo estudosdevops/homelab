@@ -23,7 +23,7 @@ spec:
         app.kubernetes.io/managed-by: argocd
         app.kubernetes.io/part-of: addons
     spec:
-      project: addons
+      project: addons-of-addons
       destination:
         server: "{{ `{{ .server }}` }}"
         namespace: "{{ `{{ .namespace }}` }}"
