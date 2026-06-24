@@ -51,14 +51,17 @@ spec:
       {% endif %}
     spec:
       syncPolicy:
-        {% if extra_sync_options %}
+        automated:
+          prune: true
+          selfHeal: true
         syncOptions:
           - CreateNamespace=true
           - ApplyOutOfSyncOnly=true
+          {% if extra_sync_options %}
           {% for opt in extra_sync_options %}
           - {{ opt }}
           {% endfor %}
-        {% endif %}
+          {% endif %}
         {% if retry %}
         retry:
 {{ retry_yaml }}
