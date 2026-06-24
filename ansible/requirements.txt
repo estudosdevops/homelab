@@ -1,4 +1,4 @@
-ansible-core>=2.18,<2.20
+ansible-core>=2.21,<2.22
 hvac>=2.4,<3.0
 kubernetes
 jmespath
