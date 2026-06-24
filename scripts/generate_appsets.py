@@ -11,7 +11,7 @@ import yaml
 from jinja2 import Environment, FileSystemLoader
 
 REPO_URL = "https://github.com/estudosdevops/homelab.git"
-TARGET_REVISION = "refactor/homelab"
+TARGET_REVISION = "main"
 
 REPO_ROOT = Path(
     subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True, check=True).stdout.strip()
