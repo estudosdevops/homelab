@@ -1,0 +1,10 @@
+apiVersion: v2
+name: ceph-csi-rbd
+description: A Helm chart for Ceph CSI
+type: application
+version: 0.1.0
+
+dependencies:
+  - name: ceph-csi-rbd
+    version: 3.17.0
+    repository: https://ceph.github.io/csi-charts
