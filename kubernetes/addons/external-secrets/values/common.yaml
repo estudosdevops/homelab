@@ -1,12 +1,14 @@
-installCRDs: true
+---
+external-secrets:
+  installCRDs: true
 
-replicaCount: 1
+  replicaCount: 1
 
-serviceMonitor:
-  enabled: false
+  serviceMonitor:
+    enabled: false
 
-webhook:
-  logLevel: info
+  webhook:
+    logLevel: info
 
-certController:
-  logLevel: info
+  certController:
+    logLevel: info
