@@ -54,6 +54,7 @@ spec:
         {% if extra_sync_options %}
         syncOptions:
           - CreateNamespace=true
+          - ApplyOutOfSyncOnly=true
           {% for opt in extra_sync_options %}
           - {{ opt }}
           {% endfor %}
