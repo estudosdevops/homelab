@@ -25,14 +25,7 @@ nodeplugin:
 
 provisioner:
   name: provisioner
-  replicaCount: 1
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxUnavailable: 0
-  priorityClassName: system-cluster-critical
-  timeout: 60s
-  setmetadata: true
+  replicaCount: 0
   httpMetrics:
     service:
       enabled: false
