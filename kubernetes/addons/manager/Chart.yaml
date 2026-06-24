@@ -1,5 +1,0 @@
-apiVersion: v2
-name: addons-manager
-description: Programmatic engine for generating isolated ApplicationSets
-type: application
-version: 1.0.0
