@@ -1,0 +1,70 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":dependencyDashboard",
+    ":semanticCommits"
+  ],
+  "dependencyDashboard": true,
+  "prHourlyLimit": 2,
+  "prConcurrentLimit": 10,
+  "ignorePaths": [
+    "**/*.sops.*",
+    "**/helmfile/**"
+  ],
+  "kubernetes": {
+    "fileMatch": [
+      "^kubernetes/addons/.+\\.ya?ml$"
+    ]
+  },
+  "packageRules": [
+    {
+      "description": "Helm charts (addons)",
+      "matchManagers": [
+        "kubernetes"
+      ],
+      "matchDatasources": [
+        "helm"
+      ],
+      "semanticCommitScope": "helm",
+      "commitMessageTopic": "chart {{depName}}",
+      "addLabels": [
+        "renovate/helm"
+      ]
+    },
+    {
+      "description": "Docker images in Kubernetes YAML",
+      "matchManagers": [
+        "kubernetes"
+      ],
+      "matchDatasources": [
+        "docker"
+      ],
+      "semanticCommitScope": "container",
+      "commitMessageTopic": "image {{depName}}",
+      "addLabels": [
+        "renovate/container"
+      ]
+    },
+    {
+      "description": "Auto-merge minor/patch images",
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "automerge": false
+    },
+    {
+      "description": "Group minor and patch updates to reduce PR noise",
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "groupName": "all non-major dependencies",
+      "groupSlug": "all-minor-patch"
+    }
+  ]
+}
