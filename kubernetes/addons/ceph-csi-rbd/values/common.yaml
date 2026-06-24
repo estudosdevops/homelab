@@ -17,10 +17,6 @@ storageClass:
   reclaimPolicy: Retain
   clusterID: 655ea995-958e-4f71-80f1-6093ede327a1
 
-volumeSnapshotClass:
-  create: true
-  clusterID: 655ea995-958e-4f71-80f1-6093ede327a1
-
 nodeplugin:
   httpMetrics:
     enabled: false
