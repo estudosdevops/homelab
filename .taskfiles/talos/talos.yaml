@@ -3,11 +3,11 @@ version: "3"
 tasks:
   generate-config:
     desc: Gera configs Talos
-    dir: "{{.TALOS_DIR}}"
+    dir: "{{.CLUSTERS_DIR}}"
     cmds:
-      - talhelper genconfig
+      - talhelper genconfig -e {{.TALOS_DIR}}/talenv.yaml
     preconditions:
-      - test -f {{.CLUSTERS_DIR}}/talconfig.yaml
+      - test -f talconfig.yaml
       - test -f {{.ROOT_DIR}}/.sops.yaml
       - test -f {{.SOPS_AGE_KEY_FILE}}
       - which talhelper
@@ -18,11 +18,11 @@ tasks:
       vars: [IP]
     vars:
       MODE: '{{.MODE | default "auto"}}'
-    dir: "{{.TALOS_DIR}}"
+    dir: "{{.CLUSTERS_DIR}}"
     cmds:
-      - talhelper gencommand apply --node {{.IP}} --extra-flags '--mode={{.MODE}}' | bash
+      - talhelper gencommand apply -e {{.TALOS_DIR}}/talenv.yaml --node {{.IP}} --extra-flags '--mode={{.MODE}}' | bash
     preconditions:
-      - test -f {{.CLUSTERS_DIR}}/talconfig.yaml
+      - test -f talconfig.yaml
       - which talhelper talosctl yq
 
   upgrade-node:

@@ -1,7 +1,5 @@
 # Tools
 [tools]
-go = "1.26"
-gh = "latest"
 helm = "latest"
 shfmt = "latest"
 aws-cli = "latest"

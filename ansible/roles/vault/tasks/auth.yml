@@ -1,0 +1,24 @@
+---
+- name: Manager enabled auth methods
+  block:
+    - name: Check enabled auth methods
+      community.hashi_vault.vault_read:
+        path: sys/auth
+      register: vault_auth_methods
+
+    - name: Enable UserPass auth
+      community.hashi_vault.vault_write:
+        path: sys/auth/userpass
+        data:
+          type: userpass
+      when: "'userpass/' not in vault_auth_methods.data.data"
+
+    - name: Enable Kubernetes auth
+      community.hashi_vault.vault_write:
+        path: sys/auth/kubernetes
+        data:
+          type: kubernetes
+      when: "'kubernetes/' not in vault_auth_methods.data.data"
+  delegate_to: localhost
+  run_once: true
+  become: false

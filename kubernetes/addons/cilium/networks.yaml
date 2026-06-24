@@ -39,22 +39,18 @@ spec:
     - name: http
       protocol: HTTP
       port: 80
-      # Permite rotas de qualquer namespace; restrinja com
-      # namespaces.from: Selector se quiser mais isolamento
       allowedRoutes:
         namespaces:
           from: All
-
-    # ── Listener HTTPS (descomente após criar o Secret TLS) ──
-    # - name: https
-    #   protocol: HTTPS
-    #   port: 443
-    #   tls:
-    #     mode: Terminate
-    #     certificateRefs:
-    #       - kind: Secret
-    #         name: homelab-tls
-    #         namespace: gateway-system
-    #   allowedRoutes:
-    #     namespaces:
-    #       from: All
+    - name: https
+      protocol: HTTPS
+      port: 443
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: wildcard-tls
+            namespace: cert-manager
+      allowedRoutes:
+        namespaces:
+          from: All

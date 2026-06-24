@@ -1,0 +1,30 @@
+---
+ceph-csi-rbd:
+  csiConfig:
+    - clusterID: 655ea995-958e-4f71-80f1-6093ede327a1
+      monitors:
+        - 192.168.20.2:6789
+        - 192.168.20.3:6789
+        - 192.168.20.4:6789
+
+  csiDriver:
+    fsGroupPolicy: "File"
+    seLinuxMount: false
+
+  storageClass:
+    create: true
+    name: ceph-csi-rbd
+    pool: rbd
+    reclaimPolicy: Retain
+    clusterID: 655ea995-958e-4f71-80f1-6093ede327a1
+
+  nodeplugin:
+    httpMetrics:
+      enabled: false
+
+  provisioner:
+    name: provisioner
+    replicaCount: 1
+    httpMetrics:
+      service:
+        enabled: false

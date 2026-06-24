@@ -1,0 +1,34 @@
+---
+vault_data_dir: /opt/vault/data
+vault_addr: https://vault.homelab.tech
+vault_config:
+  ui: true
+
+vault_users:
+  - username: fabio
+    policies:
+      - admin
+
+vault_policies:
+  - name: admin
+    rules: |
+      path "*" {
+        capabilities = [
+          "create",
+          "read",
+          "update",
+          "patch",
+          "delete",
+          "list",
+          "sudo"
+        ]
+      }
+  - name: eso-prod
+    rules: |
+      path "prod/data/*" {
+        capabilities = ["read"]
+      }
+
+      path "prod/metadata/*" {
+        capabilities = ["read", "list"]
+      }

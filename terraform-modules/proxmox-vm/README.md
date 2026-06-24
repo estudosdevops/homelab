@@ -2,47 +2,6 @@
 
 Módulo Terraform/OpenTofu para provisionamento de VMs no Proxmox VE. Suporta boot via ISO ou clone de template, distribuição entre nodes do cluster, UEFI/BIOS, cloud-init e GPU passthrough.
 
-## Uso
-
-```hcl
-module "vms" {
-  source = "./terraform-modules/proxmox-vm"
-
-  proxmox_node_name = "pve-01"
-
-  iso_image = {
-    enabled  = true
-    iso_path = "local:iso/talos-linux-metal-amd64.iso"
-  }
-
-  vms = {
-    "talos-cp-0" = {
-      cpu     = 2
-      memory  = 4096
-      cores   = 2
-      sockets = 1
-
-      disks = [{
-        size    = 50
-        storage = "local-lvm"
-      }]
-
-      network = {
-        interfaces = [{
-          bridge = "vmbr0"
-        }]
-      }
-    }
-  }
-}
-```
-
-## Exemplos
-
-- [Cluster Kubernetes com Talos Linux](examples/talos-cluster)
-- [Ubuntu com Cloud-Init](examples/ubuntu-cloud-init)
-- [Múltiplos nodes com distribuição automática](examples/multi-node)
-
 ---
 
 ## Requirements
@@ -298,42 +257,31 @@ module "k8s_cluster" {
 module "ubuntu_vms" {
   source = "./terraform-modules/proxmox-vm"
 
-  proxmox_node_name = "pve-01"
+  proxmox_node_name  = "pve-01"
+  snippets_datastore = "local" # precisa ter Snippets habilitado
 
-  iso_image = {
-    enabled  = true
-    iso_path = "local:iso/ubuntu-24.04-server.iso"
+  clone_from_template = {
+    enabled     = true
+    template_vm = "9001"
   }
 
   vms = {
-    "ubuntu-app-01" = {
+    "app-01" = {
       cpu    = 2
       memory = 4096
       cores  = 2
 
-      disks = [
-        {
-          size    = 30
-          storage = "local-lvm"
-          ssd     = true
-        },
-        {
-          size    = 100
-          storage = "local-lvm"
-          ssd     = false
-        }
-      ]
+      disks = [{
+        size    = 50
+        storage = "local-lvm"
+        ssd     = true
+      }]
 
       network = {
         interfaces = [{
-          bridge  = "vmbr0"
-          vlan_id = 200
+          bridge = "vmbr0"
+          mac    = "BC:24:11:AA:CC:01"
         }]
-      }
-
-      boot = {
-        type    = "uefi"
-        machine = "q35"
       }
 
       features = {
@@ -341,15 +289,43 @@ module "ubuntu_vms" {
       }
 
       cloud_init = {
-        enabled   = true
-        user_data = base64encode(file("${path.module}/cloud-init/user-data.yaml"))
-        meta_data = base64encode(file("${path.module}/cloud-init/meta-data.yaml"))
+        enabled  = true
+        username = "ubuntu"
+        ip_config = {
+          ipv4 = {
+            address = "dhcp"
+          }
+        }
+        # Inline — ideal para configurações simples
+        user_data = <<-YAML
+          #cloud-config
+          manage_etc_hosts: true
+
+          users:
+            - name: ubuntu
+              sudo: ALL=(ALL) NOPASSWD:ALL
+              shell: /bin/bash
+              ssh_authorized_keys:
+                - ssh-rsa AAAA... seu@email
+
+          packages:
+            - curl
+            - qemu-guest-agent
+
+          runcmd:
+            - systemctl enable qemu-guest-agent
+            - systemctl start qemu-guest-agent
+        YAML
+        # Hostname dinâmico por instância via meta_data
+        meta_data = <<-YAML
+          instance-id: app-01
+          local-hostname: app-01
+        YAML
       }
     }
   }
 }
 ```
-
 ---
 
 ## Notas

@@ -1,0 +1,49 @@
+version: "3"
+
+vars:
+  TG_DIR: "{{.ROOT_DIR}}/terragrunt/proxmox/vms/{{.VM_NAME}}"
+
+tasks:
+  run:
+    internal: true
+    dir: "{{.TG_DIR}}"
+    preconditions:
+      - test -d {{.TG_DIR}}
+    cmd: terragrunt {{.COMMAND}}
+
+  fmt:
+    desc: Formata arquivos HCL
+    cmds:
+      - task: run
+        vars:
+          COMMAND: hcl fmt
+
+  plan:
+    desc: Planeja infraestrutura da VM
+    cmds:
+      - task: run
+        vars:
+          COMMAND: plan
+
+  apply:
+    desc: Provisiona VM
+    prompt: Provisionar VM {{.VM_NAME}}?
+    cmds:
+      - task: run
+        vars:
+          COMMAND: "apply -auto-approve"
+
+  destroy:
+    desc: Remove VM
+    prompt: Destruir VM {{.VM_NAME}}?
+    cmds:
+      - task: run
+        vars:
+          COMMAND: "destroy -auto-approve"
+
+  output:
+    desc: Exibe outputs
+    cmds:
+      - task: run
+        vars:
+          COMMAND: "output -json"

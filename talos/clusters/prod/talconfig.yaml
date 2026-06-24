@@ -57,7 +57,7 @@ nodes:
         dhcp: true
         mtu: 1500
 
-  - hostname: kube-prod-wk1
+  - hostname: k8s-prod-wk1
     ipAddress: 192.168.20.14
     controlPlane: false
     installDisk: /dev/sda

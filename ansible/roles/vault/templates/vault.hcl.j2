@@ -1,0 +1,15 @@
+ui = true
+
+storage "raft" {
+  path = "{{ vault_data_dir }}"
+}
+
+listener "tcp" {
+  address = "0.0.0.0:8200"
+  tls_disable = true
+}
+
+api_addr = "{{ vault_addr }}"
+cluster_addr = "http://127.0.0.1:8201"
+
+disable_mlock = true

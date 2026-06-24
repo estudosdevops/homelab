@@ -1,0 +1,7 @@
+---
+name: ceph-csi-rbd
+namespace: ceph-csi-rbd
+
+# ArgoCD ApplicationSet parameters
+extraSyncOptions:
+  - ServerSideApply=true
