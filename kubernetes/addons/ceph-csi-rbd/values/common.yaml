@@ -7,9 +7,7 @@ csiConfig:
       - 192.168.20.4:6789
 
 csiDriver:
-  name: rbd.csi.ceph.com
-  attachRequired: true
-  podInfoOnMount: false
+  fsGroupPolicy: "File"
   seLinuxMount: false
 
 storageClass:
@@ -17,7 +15,11 @@ storageClass:
   name: ceph-csi-rbd
   pool: rbd
   reclaimPolicy: Retain
-  allowVolumeExpansion: true
+  clusterID: 655ea995-958e-4f71-80f1-6093ede327a1
+
+volumeSnapshotClass:
+  create: true
+  clusterID: 655ea995-958e-4f71-80f1-6093ede327a1
 
 nodeplugin:
   httpMetrics:
@@ -25,7 +27,7 @@ nodeplugin:
 
 provisioner:
   name: provisioner
-  replicaCount: 0
+  replicaCount: 1
   httpMetrics:
     service:
       enabled: false
