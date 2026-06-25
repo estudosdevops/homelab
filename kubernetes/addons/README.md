@@ -48,13 +48,14 @@ Benefícios:
 ```mermaid
 flowchart TD
 
-    DevPlan["👨‍💻 task addon:plan addon=<addon>"] --> Py["🐍 Python Generator
+    DevPlan["👨‍💻 task addon:plan|apply addon=<addon>"] --> Py["🐍 Python Generator
     (dry-run + render)"]
     Py --> AppSet["📄 appset.yaml gerado"]
 
-    AppSet --> Kubectl["👨‍💻 task addon:apply addon=<addon>
-    (bootstrap appset)"]
-    Kubectl --> ArgoBootstrap["🚀 Argo CD Bootstrap (Controller ativo)"]
+    AppSet --> Kubectl["☸️ kubectl apply
+    (bootstrap ApplicationSet)"]
+    Kubectl --> ArgoBootstrap["🚀 Argo CD Bootstrap
+    (Controller ativo)"]
 
     %% Git fica abaixo do AppSet gerado (como você pediu)
     AppSet --> Git[("📂 Git Repository")]
