@@ -24,6 +24,7 @@ env:
   SOPS_AGE_KEY_FILE: "{{.ROOT_DIR}}/age.key"
 
 includes:
+  addon: .taskfiles/addon.yaml
   ansible: .taskfiles/ansible.yaml
   talos: .taskfiles/talos/talos.yaml
   terragrunt: .taskfiles/terragrunt.yaml

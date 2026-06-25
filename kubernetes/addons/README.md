@@ -1,7 +1,5 @@
 # Kubernetes Addons GitOps
 
-## Objetivo
-
 Este documento descreve como os addons do Kubernetes são gerenciados através de GitOps utilizando ArgoCD, ApplicationSet e Renovate.
 
 ## Visão Geral
@@ -15,37 +13,26 @@ kubernetes/
 └── addons/
     ├── cert-manager/
     │   ├── Chart.yaml
+    │   ├── config.yaml
     │   ├── values/
     │   │   ├── common.yaml
+    │   │   ├── dev.yaml
     │   │   ├── stg.yaml
-    │   │   ├── sdx.yaml
     │   │   └── prod.yaml
-    │   └── config.yaml
-    │
-    ├── external-secrets/
-    │   ├── Chart.yaml
-    │   ├── values/
-    │   └── config.yaml
-    │
-    └── ...
+    │   └── appset.yaml (gerado)
 ```
-
-Cada addon possui:
-
-* Chart Helm (`Chart.yaml`)
-* Configuração própria (`config.yaml`)
-* Valores compartilhados (`common.yaml`)
-* Valores específicos por cluster (`<cluster>.yaml`)
 
 ### ApplicationSet
 
-O ArgoCD utiliza um único ApplicationSet para descobrir automaticamente os addons existentes. O generator lê todos os arquivos:
+Cada addon possui um ApplicationSet gerado automaticamente por script Python.
 
-```text
-kubernetes/addons/*/config.yaml
+```bash
+# Geração do appset
+task addon:plan addon=cert-manager
+
+# Aplicação no cluster
+task addon:apply addon=cert-manager
 ```
-
-Para cada addon encontrado é criado automaticamente um Application correspondente.
 
 Benefícios:
 
@@ -54,41 +41,61 @@ Benefícios:
 * Mantém padronização entre addons.
 * Reduz manutenção operacional.
 
-### Fluxo
 
 <details>
-  <summary>Fluxo de sincronização</summary>
+  <summary>Fluxo GitOps</summary>
 
 ```mermaid
 flowchart TD
-    Dev["👨‍💻 Commit / Push"] --> Git[("📂 Git Repository")]
-    Git --> AppSet["ApplicationSet"]
-    AppSet --> App["Argo CD Application"]
-    App --> Diff{"Cluster está sincronizado?"}
+
+    DevPlan["👨‍💻 task addon:plan|apply addon=<addon>"] --> Py["🐍 Python Generator
+    (dry-run + render)"]
+    Py --> AppSet["📄 appset.yaml gerado"]
+
+    AppSet --> Kubectl["☸️ kubectl apply
+    (bootstrap ApplicationSet)"]
+    Kubectl --> ArgoBootstrap["🚀 Argo CD Bootstrap
+    (Controller ativo)"]
+
+    %% Git fica abaixo do AppSet gerado (como você pediu)
+    AppSet --> Git[("📂 Git Repository")]
+    DevCommit["👨‍💻 Commit / Push"] --> Git
+
+    Git --> Argo["🚀 Argo CD Controller"]
+    ArgoBootstrap --> Argo
+
+    Argo --> Controller["ApplicationSet Controller"]
+    Controller --> Apps["Argo CD Applications"]
+
+    Apps --> Diff{"Cluster está sincronizado?"}
 
     Diff -->|"✅ Sim"| Idle["Sem ação"]
-
     Diff -->|"❌ Não"| Sync["Argo CD Sync"]
 
     Sync --> K8S["☸️ Kubernetes"]
-
     K8S --> Diff
 
-    Drift["⚠️ Mudança manual no cluster"] -.-> Diff
+    Drift["⚠️ Drift manual no cluster"] -.-> Diff
 
-    classDef git fill:#6e40c9,stroke:#4a2d8c,color:#fff
-    classDef argo fill:#f04e23,stroke:#c63c16,color:#fff
-    classDef k8s fill:#326ce5,stroke:#1e4db3,color:#fff
-    classDef user fill:#2ea44f,stroke:#1a7036,color:#fff
-    classDef warn fill:#FFE082,stroke:#F57C00,color:#000
 
-    class Git git
-    class AppSet,App,Sync argo
-    class K8S k8s
-    class Dev user
-    class Drift warn
+    %% ===== STYLES (cores) =====
+    classDef git fill:#6e40c9,stroke:#4a2d8c,color:#fff;
+    classDef argo fill:#f04e23,stroke:#c63c16,color:#fff;
+    classDef k8s fill:#326ce5,stroke:#1e4db3,color:#fff;
+    classDef user fill:#2ea44f,stroke:#1a7036,color:#fff;
+    classDef gen fill:#9C27B0,stroke:#6A1B9A,color:#fff;
+    classDef warn fill:#FFE082,stroke:#F57C00,color:#000;
+
+    class DevPlan,DevCommit,Kubectl user;
+    class Py,AppSet gen;
+    class Git git;
+    class Argo,Controller,Apps,Sync,ArgoBootstrap argo;
+    class K8S k8s;
+    class Drift warn;
 ```
 </details>
+
+---
 
 ### Atualização de Versões
 
@@ -101,8 +108,6 @@ As versões dos charts Helm são monitoradas automaticamente pelo Renovate, quan
 5. O merge é realizado.
 6. Argo CD sincroniza automaticamente.
 
-### Fluxo de Atualização com Renovate
-
 <details>
   <summary>Fluxo Renovate → Argo CD</summary>
 
@@ -112,30 +117,34 @@ flowchart TD
 
     Renovate --> PR["Pull Request"]
 
-    PR --> Validate["🔍 Validações"]
+    PR --> Kubechecks["🛡️ Kubechecks"]
 
-    Validate --> Decision{"Aprovado?"}
+    Kubechecks --> Decision{"Aprovado?"}
 
-    Decision -->|"❌ Não"| Fix["Correções"]
+    Decision -->|"❌ Não"| Fix["🔧 Correções"]
 
     Fix --> PR
 
-    Decision -->|"✅ Sim"| Merge["Merge"]
+    Decision -->|"✅ Sim"| Merge["✅ Merge"]
 
     Merge --> Git[("📂 Git Repository")]
 
-    Git --> Argo["🚀 Argo CD"]
+    Git --> Kargo["🚦 Kargo"]
+
+    Kargo --> Argo["🚀 Argo CD"]
 
     Argo --> Cluster["☸️ Kubernetes"]
 
     classDef renovate fill:#4CAF50,stroke:#2E7D32,color:#fff
-    classDef pr fill:#FF9800,stroke:#E65100,color:#fff
+    classDef security fill:#9C27B0,stroke:#6A1B9A,color:#fff
+    classDef promotion fill:#607D8B,stroke:#455A64,color:#fff
     classDef argo fill:#f04e23,stroke:#c63c16,color:#fff
     classDef k8s fill:#326ce5,stroke:#1e4db3,color:#fff
     classDef git fill:#6e40c9,stroke:#4a2d8c,color:#fff
 
     class Renovate renovate
-    class PR,Validate,Decision,Fix,Merge pr
+    class Kubechecks security
+    class Kargo promotion
     class Argo argo
     class Cluster k8s
     class Git git
@@ -169,4 +178,3 @@ Objetivos:
 * Padronização entre clusters.
 * Menor esforço operacional.
 * Facilidade para auditoria e troubleshooting.
-
