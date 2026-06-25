@@ -10,7 +10,7 @@ tasks:
       vars: [addon]
 
     cmds:
-      - python3 ./scripts/generate_appsets.py {{.addon}}
+      - ./scripts/generate_appsets.py {{.addon}}
       - task: show
         vars:
           addon: "{{.addon}}"
@@ -32,14 +32,14 @@ tasks:
     requires:
       vars: [addon]
     cmds:
-      - python3 ./scripts/generate_appsets.py {{.addon}} --apply
+      - ./scripts/generate_appsets.py {{.addon}} --apply
 
   plan-all:
     desc: Renderiza ApplicationSet todos os addons
     cmds:
-      - python3 ./scripts/generate_appsets.py
+      - ./scripts/generate_appsets.py
 
   apply-all:
     desc: Aplica todos os addons
     cmds:
-      - python3 ./scripts/generate_appsets.py --apply
+      - ./scripts/generate_appsets.py --apply
