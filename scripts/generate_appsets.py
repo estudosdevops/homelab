@@ -1,14 +1,10 @@
 #!/usr/bin/env python3
 """
-Gera um ApplicationSet por addon a partir de templates/appset.yaml.j2.
+Generate ApplicationSet per addon (co-located in addon directory).
 
-Uso:
-    python3 generate_appsets.py
-    python3 generate_appsets.py cert-manager
-    python3 generate_appsets.py cert-manager --apply
-
-Override da revisão:
-    TARGET_REVISION=feature/cert-manager python3 generate_appsets.py
+Usage:
+  python3 generate_appsets.py [addon]
+  python3 generate_appsets.py [addon] --apply
 """
 
 import os
@@ -19,11 +15,15 @@ from pathlib import Path
 import yaml
 from jinja2 import Environment, FileSystemLoader
 
+
 REPO_URL = "https://github.com/estudosdevops/homelab.git"
 
 
-def run_command(cmd: list[str]) -> str:
-    """Executa comando e retorna stdout."""
+# ---------------------------
+# git helpers (DRY)
+# ---------------------------
+
+def run(cmd: list[str]) -> str:
     return subprocess.run(
         cmd,
         capture_output=True,
@@ -32,80 +32,36 @@ def run_command(cmd: list[str]) -> str:
     ).stdout.strip()
 
 
-def get_repo_root() -> Path:
-    """Retorna diretório raiz do repositório."""
-    return Path(run_command(["git", "rev-parse", "--show-toplevel"]))
+def repo_root() -> Path:
+    return Path(run(["git", "rev-parse", "--show-toplevel"]))
 
 
-def get_current_branch() -> str:
-    """Retorna a branch atual."""
-    return run_command(
-        ["git", "rev-parse", "--abbrev-ref", "HEAD"]
-    )
+def current_branch() -> str:
+    return run(["git", "rev-parse", "--abbrev-ref", "HEAD"])
 
 
-def get_target_revision() -> str:
-    """
-    Prioridade:
-    1. TARGET_REVISION env
-    2. Branch atual
-    3. main (fallback)
-    """
+def target_revision() -> str:
+    env = os.getenv("TARGET_REVISION")
+    if env:
+        return env
 
-    if env_revision := os.getenv("TARGET_REVISION"):
-        return env_revision
-
-    try:
-        branch = get_current_branch()
-
-        if branch == "HEAD":
-            return "main"
-
-        return f"refs/heads/{branch}"
-
-    except Exception:
-        return "main"
+    branch = current_branch()
+    return "main" if branch == "HEAD" else branch
 
 
-REPO_ROOT = get_repo_root()
+# ---------------------------
+# paths
+# ---------------------------
 
-ADDONS_DIR = REPO_ROOT / "kubernetes" / "addons"
+ROOT = repo_root()
+
+ADDONS_DIR = ROOT / "kubernetes" / "addons"
 TEMPLATE_DIR = ADDONS_DIR / "templates"
-OUTPUT_DIR = ADDONS_DIR / ".generated" / "appsets"
-
-TARGET_REVISION = get_target_revision()
 
 
-def build_retry_yaml(retry_cfg: dict | None) -> str:
-    """Converte retry config para YAML indentado."""
-    if not retry_cfg:
-        return ""
-
-    lines = yaml.dump(
-        retry_cfg,
-        sort_keys=False,
-    ).rstrip().splitlines()
-
-    return "\n".join(
-        f"{' ' * 10}{line}"
-        for line in lines
-    )
-
-
-def render(template, addon_name: str, cfg: dict) -> str:
-    """Renderiza template Jinja."""
-
-    return template.render(
-        addon_name=addon_name,
-        addon_namespace=cfg.get("namespace", "default"),
-        repo_url=REPO_URL,
-        target_revision=TARGET_REVISION,
-        annotations=cfg.get("annotations"),
-        extra_sync_options=cfg.get("extraSyncOptions"),
-        retry=cfg.get("retry"),
-        retry_yaml=build_retry_yaml(cfg.get("retry")),
-    )
-
+# ---------------------------
+# jinja
+# ---------------------------
 
 def get_template():
     env = Environment(
@@ -113,41 +69,64 @@ def get_template():
         trim_blocks=True,
         lstrip_blocks=True,
     )
-
     return env.get_template("appset.yaml.j2")
 
 
-def generate_appset(config_path: Path, template):
-    cfg = yaml.safe_load(
-        config_path.read_text()
-    ) or {}
+def build_retry_yaml(retry: dict | None) -> str:
+    if not retry:
+        return ""
 
-    addon_name = cfg.get(
-        "name",
-        config_path.parent.name,
+    return "\n".join(
+        " " * 10 + line
+        for line in yaml.dump(retry, sort_keys=False).splitlines()
     )
 
-    rendered = render(
-        template,
-        addon_name,
-        cfg,
+
+def render(template, addon: str, cfg: dict) -> str:
+    return template.render(
+        addon_name=addon,
+        addon_namespace=cfg.get("namespace", "default"),
+        repo_url=REPO_URL,
+        target_revision=target_revision(),
+        annotations=cfg.get("annotations"),
+        extra_sync_options=cfg.get("extraSyncOptions"),
+        retry=cfg.get("retry"),
+        retry_yaml=build_retry_yaml(cfg.get("retry")),
     )
 
+
+# ---------------------------
+# core
+# ---------------------------
+
+def addon_dir(name: str) -> Path:
+    return ADDONS_DIR / name
+
+
+def output_file(name: str) -> Path:
+    return addon_dir(name) / "appset.yaml"
+
+
+def generate(addon_path: Path, template):
+    cfg = yaml.safe_load((addon_path / "config.yaml").read_text()) or {}
+
+    addon_name = cfg.get("name", addon_path.name)
+
+    rendered = render(template, addon_name, cfg)
+
+    # validate YAML early
     yaml.safe_load(rendered)
 
-    out_path = OUTPUT_DIR / f"{addon_name}.yaml"
-    out_path.write_text(rendered)
+    out = output_file(addon_path.name)
+    out.write_text(rendered)
 
-    print(
-        f"[OK] {addon_name} "
-        f"(revision={TARGET_REVISION}) "
-        f"-> {out_path}"
-    )
+    print(f"[OK] {addon_path.name} -> {out}")
+
 
     return rendered
 
 
-def apply_manifest(manifest: str):
+def apply(manifest: str):
     subprocess.run(
         ["kubectl", "apply", "-f", "-"],
         input=manifest,
@@ -159,42 +138,29 @@ def apply_manifest(manifest: str):
 def main():
     args = sys.argv[1:]
 
-    apply = "--apply" in args
-
-    addon_filter = next(
-        (arg for arg in args if not arg.startswith("-")),
-        None,
-    )
-
-    OUTPUT_DIR.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
+    apply_flag = "--apply" in args
+    addon_filter = next((a for a in args if not a.startswith("-")), None)
 
     template = get_template()
 
-    for config_path in sorted(
-        ADDONS_DIR.glob("*/config.yaml")
-    ):
-        cfg = yaml.safe_load(
-            config_path.read_text()
-        ) or {}
-
-        addon_name = cfg.get(
-            "name",
-            config_path.parent.name,
-        )
-
-        if addon_filter and addon_filter != addon_name:
+    for addon in sorted(ADDONS_DIR.iterdir()):
+        if not addon.is_dir():
             continue
 
-        manifest = generate_appset(
-            config_path,
-            template,
-        )
+        if addon.name == "templates":
+            continue
 
-        if apply:
-            apply_manifest(manifest)
+        cfg_file = addon / "config.yaml"
+        if not cfg_file.exists():
+            continue
+
+        if addon_filter and addon_filter != addon.name:
+            continue
+
+        manifest = generate(addon, template)
+
+        if apply_flag:
+            apply(manifest)
 
 
 if __name__ == "__main__":
