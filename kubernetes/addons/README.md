@@ -117,30 +117,34 @@ flowchart TD
 
     Renovate --> PR["Pull Request"]
 
-    PR --> Validate["🔍 Validações"]
+    PR --> Kubechecks["🛡️ Kubechecks"]
 
-    Validate --> Decision{"Aprovado?"}
+    Kubechecks --> Decision{"Aprovado?"}
 
-    Decision -->|"❌ Não"| Fix["Correções"]
+    Decision -->|"❌ Não"| Fix["🔧 Correções"]
 
     Fix --> PR
 
-    Decision -->|"✅ Sim"| Merge["Merge"]
+    Decision -->|"✅ Sim"| Merge["✅ Merge"]
 
     Merge --> Git[("📂 Git Repository")]
 
-    Git --> Argo["🚀 Argo CD"]
+    Git --> Kargo["🚦 Kargo"]
+
+    Kargo --> Argo["🚀 Argo CD"]
 
     Argo --> Cluster["☸️ Kubernetes"]
 
     classDef renovate fill:#4CAF50,stroke:#2E7D32,color:#fff
-    classDef pr fill:#FF9800,stroke:#E65100,color:#fff
+    classDef security fill:#9C27B0,stroke:#6A1B9A,color:#fff
+    classDef promotion fill:#607D8B,stroke:#455A64,color:#fff
     classDef argo fill:#f04e23,stroke:#c63c16,color:#fff
     classDef k8s fill:#326ce5,stroke:#1e4db3,color:#fff
     classDef git fill:#6e40c9,stroke:#4a2d8c,color:#fff
 
     class Renovate renovate
-    class PR,Validate,Decision,Fix,Merge pr
+    class Kubechecks security
+    class Kargo promotion
     class Argo argo
     class Cluster k8s
     class Git git
