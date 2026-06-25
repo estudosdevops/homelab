@@ -53,7 +53,7 @@ flowchart TD
     Py --> AppSet["📄 appset.yaml gerado"]
 
     AppSet --> Kubectl["👨‍💻 task addon:apply addon=<addon>
-    (bootstrap ApplicationSet)"]
+    (bootstrap appset)"]
     Kubectl --> ArgoBootstrap["🚀 Argo CD Bootstrap (Controller ativo)"]
 
     %% Git fica abaixo do AppSet gerado (como você pediu)
