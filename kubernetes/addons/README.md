@@ -48,14 +48,17 @@ Benefícios:
 ```mermaid
 flowchart TD
 
-    DevPlan["👨‍💻 task addon:plan addon=<addon>"] --> Py["🐍 Python Generator"]
+    DevPlan["👨‍💻 task addon:plan addon=<addon>"] --> Py["🐍 Python Generator
+    (dry-run + render)"]
     Py --> AppSet["📄 appset.yaml gerado"]
 
-    DevApply["👨‍💻 task addon:apply addon=<addon>"] --> Kubectl["☸️ kubectl apply -f appset.yaml"]
-    Kubectl --> ArgoBootstrap["🚀 Argo CD bootstrap (ApplicationSet instalado)"]
+    AppSet --> Kubectl["👨‍💻 task addon:apply addon=<addon>
+    (bootstrap ApplicationSet)"]
+    Kubectl --> ArgoBootstrap["🚀 Argo CD Bootstrap (Controller ativo)"]
 
-    DevCommit["👨‍💻 Commit / Push"] --> Git[("📂 Git Repository")]
-    AppSet --> Git
+    %% Git fica abaixo do AppSet gerado (como você pediu)
+    AppSet --> Git[("📂 Git Repository")]
+    DevCommit["👨‍💻 Commit / Push"] --> Git
 
     Git --> Argo["🚀 Argo CD Controller"]
     ArgoBootstrap --> Argo
@@ -71,22 +74,23 @@ flowchart TD
     Sync --> K8S["☸️ Kubernetes"]
     K8S --> Diff
 
-    Drift["⚠️ Mudança manual no cluster"] -.-> Diff
+    Drift["⚠️ Drift manual no cluster"] -.-> Diff
 
 
-    classDef git fill:#6e40c9,stroke:#4a2d8c,color:#fff
-    classDef argo fill:#f04e23,stroke:#c63c16,color:#fff
-    classDef k8s fill:#326ce5,stroke:#1e4db3,color:#fff
-    classDef user fill:#2ea44f,stroke:#1a7036,color:#fff
-    classDef warn fill:#FFE082,stroke:#F57C00,color:#000
+    %% ===== STYLES (cores) =====
+    classDef git fill:#6e40c9,stroke:#4a2d8c,color:#fff;
+    classDef argo fill:#f04e23,stroke:#c63c16,color:#fff;
+    classDef k8s fill:#326ce5,stroke:#1e4db3,color:#fff;
+    classDef user fill:#2ea44f,stroke:#1a7036,color:#fff;
+    classDef gen fill:#9C27B0,stroke:#6A1B9A,color:#fff;
+    classDef warn fill:#FFE082,stroke:#F57C00,color:#000;
 
-    class Git git
-    class Argo,Controller,Apps,Sync,ArgoBootstrap argo
-    class K8S k8s
-    class DevPlan,DevApply,DevCommit user
-    class Py,Kubectl warn
-    class Drift warn
-    class AppSet warn
+    class DevPlan,DevCommit,Kubectl user;
+    class Py,AppSet gen;
+    class Git git;
+    class Argo,Controller,Apps,Sync,ArgoBootstrap argo;
+    class K8S k8s;
+    class Drift warn;
 ```
 </details>
 
