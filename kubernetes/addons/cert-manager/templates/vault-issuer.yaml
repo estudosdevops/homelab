@@ -4,11 +4,8 @@ metadata:
   name: vault-issuer
 spec:
   vault:
-    server: https://vault.homelab.tech
+    server: http://192.168.20.20:8200
     path: pki_int/sign/homelab-dot-tech
-    caBundleSecretRef:
-      name: vault-tls-ca-secret
-      key: ca.crt
     auth:
       kubernetes:
         role: cert-manager
