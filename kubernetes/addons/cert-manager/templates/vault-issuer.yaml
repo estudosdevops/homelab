@@ -7,7 +7,7 @@ spec:
     server: https://vault.homelab.tech
     path: pki_int/sign/homelab-dot-tech
     caBundleSecretRef:
-      name: vault-tls-ca
+      name: vault-tls-ca-secret
       key: ca.crt
     auth:
       kubernetes:
