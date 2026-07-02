@@ -1,8 +1,5 @@
 version: "3"
 
-vars:
-  APPSET_DIR: ./kubernetes/addons/.generated/appsets
-
 tasks:
   plan:
     desc: Renderiza ApplicationSet de um addon
@@ -10,7 +7,7 @@ tasks:
       vars: [addon]
 
     cmds:
-      - ./scripts/generate_appsets.py {{.addon}}
+      - ./scripts/appset-generation.py {{.addon}}
       - task: show
         vars:
           addon: "{{.addon}}"
@@ -19,7 +16,7 @@ tasks:
     internal: true
     cmds:
       - |
-        file=./kubernetes/addons/.generated/appsets/{{.addon}}.yaml
+        file=./kubernetes/addons/{{.addon}}/appset.yaml
 
         if command -v batcat >/dev/null 2>&1; then
           batcat "$file"
@@ -32,14 +29,14 @@ tasks:
     requires:
       vars: [addon]
     cmds:
-      - ./scripts/generate_appsets.py {{.addon}} --apply
+      - ./scripts/appset-generation.py {{.addon}} --apply
 
   plan-all:
     desc: Renderiza ApplicationSet todos os addons
     cmds:
-      - ./scripts/generate_appsets.py
+      - ./scripts/appset-generation.py
 
   apply-all:
     desc: Aplica todos os addons
     cmds:
-      - ./scripts/generate_appsets.py --apply
+      - ./scripts/appset-generation.py --apply
