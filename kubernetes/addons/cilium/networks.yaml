@@ -42,15 +42,16 @@ spec:
       allowedRoutes:
         namespaces:
           from: All
-    - name: https
+    - name: argocd
+      hostname: argocd.homelab.tech
       protocol: HTTPS
       port: 443
       tls:
         mode: Terminate
         certificateRefs:
           - kind: Secret
-            name: wildcard-tls
-            namespace: cert-manager
+            name: argocd-tls
+            namespace: argocd
       allowedRoutes:
         namespaces:
           from: All
