@@ -1,0 +1,34 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: argocd-tls
+  namespace: argocd
+spec:
+  secretName: argocd-tls
+  duration: 24h
+  renewBefore: 1h
+  commonName: argocd.homelab.tech
+  dnsNames:
+    - argocd.homelab.tech
+  privateKey:
+    algorithm: RSA
+    size: 4096
+  issuerRef:
+    name: vault-issuer
+    kind: ClusterIssuer
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: allow-gateway
+  namespace: argocd
+spec:
+  from:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      namespace: gateway-system
+  to:
+    - group: ""
+      kind: Secret
+      name: argocd-tls
