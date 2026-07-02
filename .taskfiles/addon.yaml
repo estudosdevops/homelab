@@ -7,7 +7,7 @@ tasks:
       vars: [addon]
 
     cmds:
-      - ./scripts/appset-generation.py {{.addon}}
+      - ./scripts/argo-appset-generation.py {{.addon}}
       - task: show
         vars:
           addon: "{{.addon}}"
@@ -29,14 +29,14 @@ tasks:
     requires:
       vars: [addon]
     cmds:
-      - ./scripts/appset-generation.py {{.addon}} --apply
+      - ./scripts/argo-appset-generation.py {{.addon}} --apply
 
   plan-all:
     desc: Renderiza ApplicationSet todos os addons
     cmds:
-      - ./scripts/appset-generation.py
+      - ./scripts/argo-appset-generation.py
 
   apply-all:
     desc: Aplica todos os addons
     cmds:
-      - ./scripts/appset-generation.py --apply
+      - ./scripts/argo-appset-generation.py --apply
