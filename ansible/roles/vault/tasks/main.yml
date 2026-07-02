@@ -18,3 +18,7 @@
 - name: Configure external secrets
   ansible.builtin.import_tasks: eso.yml
   tags: [vault, eso]
+
+- name: Configure PKI secrets engines
+  ansible.builtin.import_tasks: pki.yml
+  tags: [vault, pki]

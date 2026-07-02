@@ -1,0 +1,182 @@
+---
+- name: Configure Vault PKI and cert-manager integration
+  block:
+    - name: Configure PKI secrets engines
+      block:
+        - name: Read enabled secrets engines
+          community.hashi_vault.vault_read:
+            path: sys/mounts
+          register: vault_mounts
+
+        - name: Enable Root PKI
+          community.hashi_vault.vault_write:
+            path: sys/mounts/pki
+            data:
+              type: pki
+              description: Root Certificate Authority
+          when: "'pki/' not in vault_mounts.data"
+
+        - name: Enable Intermediate PKI
+          community.hashi_vault.vault_write:
+            path: sys/mounts/pki_int
+            data:
+              type: pki
+              description: Intermediate Certificate Authority
+          when: "'pki_int/' not in vault_mounts.data"
+
+        - name: Configure Root PKI TTL
+          community.hashi_vault.vault_write:
+            path: sys/mounts/pki/tune
+            data:
+              max_lease_ttl: 87600h
+
+        - name: Configure Intermediate PKI TTL
+          community.hashi_vault.vault_write:
+            path: sys/mounts/pki_int/tune
+            data:
+              max_lease_ttl: 43800h
+
+        - name: Check if Root CA is already generated
+          community.hashi_vault.vault_read:
+            path: pki/cert/ca
+          register: root_ca_check
+          ignore_errors: true
+
+        - name: Generate Root CA
+          community.hashi_vault.vault_write:
+            path: pki/root/generate/internal
+            data:
+              common_name: Homelab Root CA
+              ttl: 87600h
+          when: root_ca_check is failed or root_ca_check.data is not defined
+
+        - name: Configure Root PKI URLs
+          community.hashi_vault.vault_write:
+            path: pki/config/urls
+            data:
+              issuing_certificates: "{{ vault_addr }}/v1/pki/ca"
+              crl_distribution_points: "{{ vault_addr }}/v1/pki/crl"
+
+        - name: Check if Intermediate CA is already signed and imported
+          community.hashi_vault.vault_read:
+            path: pki_int/cert/ca
+          register: intermediate_ca_check
+          ignore_errors: true
+
+        - name: Generate Intermediate CSR
+          community.hashi_vault.vault_write:
+            path: pki_int/intermediate/generate/internal
+            data:
+              common_name: Homelab Intermediate CA
+          register: intermediate_csr
+          when: intermediate_ca_check is failed or intermediate_ca_check.data is not defined
+
+        - name: Sign Intermediate
+          community.hashi_vault.vault_write:
+            path: pki/root/sign-intermediate
+            data:
+              csr: "{{ intermediate_csr.data.data.csr }}"
+              common_name: Homelab Intermediate CA
+              ttl: 43800h
+          register: intermediate_certificate
+          when: intermediate_csr is changed
+
+        - name: Import Intermediate
+          community.hashi_vault.vault_write:
+            path: pki_int/intermediate/set-signed
+            data:
+              certificate: "{{ intermediate_certificate.data.data.certificate }}"
+          when: intermediate_certificate is changed
+
+        - name: Configure PKI Roles
+          community.hashi_vault.vault_write:
+            path: pki_int/roles/homelab-dot-tech
+            data:
+              allowed_domains: homelab.tech
+              allow_subdomains: true
+              allow_wildcard_certificates: false
+              max_ttl: 720h
+              key_type: rsa
+              key_bits: 4096
+
+        - name: Configure Intermediate PKI auto-tidy
+          community.hashi_vault.vault_write:
+            path: pki_int/config/auto-tidy
+            data:
+              enabled: true
+              tidy_cert_store: true
+              tidy_revoked_certs: true
+              interval_duration: 24h
+              safety_buffer: 72h
+
+        - name: Configure cert-manager Vault Role
+          community.hashi_vault.vault_write:
+            path: auth/kubernetes/role/cert-manager
+            data:
+              bound_service_account_names: vault-issuer
+              bound_service_account_namespaces: cert-manager
+              policies: cert-manager
+              ttl: 1h
+
+        # - name: Generate certificates for NPM applications
+        #   community.hashi_vault.vault_pki_generate_certificate:
+        #     engine_mount_point: "{{ vault_pki_int.engine_mount_point }}"
+        #     role_name: "{{ vault_pki_int.role_name }}"
+        #     common_name: "{{ item }}"
+        #     ttl: "{{ vault_pki_int.ttl }}"
+        #   loop: "{{ vault_pki_int.certificates }}"
+        #   loop_control:
+        #     label: "{{ item }}"
+        #   register: vault_certificates
+
+    - name: Configure cert-manager authentication
+      block:
+        - name: Create Vault issuer ServiceAccount
+          kubernetes.core.k8s:
+            state: present
+            definition:
+              apiVersion: v1
+              kind: ServiceAccount
+              metadata:
+                name: vault-issuer
+                namespace: cert-manager
+
+        - name: Create Role for Vault issuer
+          kubernetes.core.k8s:
+            state: present
+            definition:
+              apiVersion: rbac.authorization.k8s.io/v1
+              kind: Role
+              metadata:
+                name: vault-issuer
+                namespace: cert-manager
+              rules:
+                - apiGroups: [""]
+                  resources:
+                    - serviceaccounts/token
+                  resourceNames:
+                    - vault-issuer
+                  verbs:
+                    - create
+
+        - name: Create RoleBinding for Vault issuer
+          kubernetes.core.k8s:
+            state: present
+            definition:
+              apiVersion: rbac.authorization.k8s.io/v1
+              kind: RoleBinding
+              metadata:
+                name: vault-issuer
+                namespace: cert-manager
+              subjects:
+                - kind: ServiceAccount
+                  name: cert-manager
+                  namespace: cert-manager
+              roleRef:
+                apiGroup: rbac.authorization.k8s.io
+                kind: Role
+                name: vault-issuer
+
+  delegate_to: localhost
+  run_once: true
+  become: false
