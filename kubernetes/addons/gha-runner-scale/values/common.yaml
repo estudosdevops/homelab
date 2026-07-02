@@ -1,0 +1,21 @@
+gha-runner-scale:
+  githubConfigUrl: "https://github.com/estudosdevops"
+
+  githubConfigSecret:
+    github_token: "github-token"
+
+  minRunners: 1
+  maxRunners: 2
+
+  runnerScaleSetName: shared-runners
+
+  scaleSetLabels:
+    - linux
+    - x64
+
+  template:
+    spec:
+      containers:
+        - name: runner
+          image: ghcr.io/actions/actions-runner:latest
+          command: ["/home/runner/run.sh"]
