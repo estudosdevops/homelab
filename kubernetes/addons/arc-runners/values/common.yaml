@@ -13,7 +13,8 @@ gha-runner-scale-set:
   runnerScaleSetName: shared-runners
 
   scaleSetLabels:
-    - shared-runners
+    - linux
+    - self-hosted
 
   template:
     spec:
