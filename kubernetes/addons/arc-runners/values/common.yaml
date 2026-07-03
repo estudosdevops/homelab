@@ -1,7 +1,7 @@
 gha-runner-scale-set:
   githubConfigUrl: "https://github.com/estudosdevops"
 
-  githubConfigSecret: "github-token-secret"
+  githubConfigSecret: github-token-secret
 
   controllerServiceAccount:
     name: arc-controller-gha-rs-controller
