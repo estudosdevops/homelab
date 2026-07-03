@@ -2,11 +2,11 @@ arc-runners:
   githubConfigUrl: "https://github.com/estudosdevops"
 
   githubConfigSecret:
-    github_token: "github-token"
+    github_token: "github-token-secret"
 
   controllerServiceAccount:
-    name: arc-controller
-    namespace: arc-runners
+    name: arc-controller-gha-rs-controller
+    namespace: arc-system
 
   minRunners: 1
   maxRunners: 2

@@ -1,3 +1,7 @@
 ---
 name: arc-controller
 namespace: arc-system
+
+# ArgoCD ApplicationSet parameters
+extraSyncOptions:
+  - ServerSideApply=true
