@@ -2,11 +2,13 @@
 name: Runner Test
 
 on:
+  push:
   workflow_dispatch:
 
 jobs:
   test:
     runs-on:
+      - kubernetes
       - self-hosted
       - shared-runners
 

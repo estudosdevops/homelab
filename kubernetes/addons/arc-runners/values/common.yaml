@@ -13,7 +13,7 @@ gha-runner-scale-set:
   runnerScaleSetName: shared-runners
 
   scaleSetLabels:
-    - linux
+    - kubernetes
     - self-hosted
 
   template:
