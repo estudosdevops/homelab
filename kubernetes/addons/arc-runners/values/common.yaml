@@ -7,7 +7,7 @@ gha-runner-scale-set:
     name: arc-controller-gha-rs-controller
     namespace: arc-system
 
-  minRunners: 0
+  minRunners: 1
   maxRunners: 2
 
   runnerScaleSetName: shared-runners
