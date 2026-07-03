@@ -1,8 +1,12 @@
-gha-runner-scale:
+arc-runners:
   githubConfigUrl: "https://github.com/estudosdevops"
 
   githubConfigSecret:
     github_token: "github-token"
+
+  controllerServiceAccount:
+    name: arc-controller
+    namespace: arc-runners
 
   minRunners: 1
   maxRunners: 2

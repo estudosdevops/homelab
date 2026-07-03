@@ -1,10 +1,10 @@
 apiVersion: v2
-name: gha-runner-scale
-description: A Helm chart for Kubernetes GHA Runner Scale
+name: arc-controller
+description: A Helm chart for Kubernetes ARC Controller
 type: application
 version: 0.1.0
 
 dependencies:
-  - name: gha-runner-scale-set
+  - name: gha-runner-scale-set-controller
     version: 0.14.2
     repository: oci://ghcr.io/actions/actions-runner-controller-charts
