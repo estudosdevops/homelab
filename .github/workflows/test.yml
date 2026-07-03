@@ -1,0 +1,13 @@
+---
+name: Test CI
+
+on:
+  push:
+
+jobs:
+  test:
+    runs-on: shared-runners
+    steps:
+      - uses: actions/checkout@v7
+
+      - run: echo "Olá homelab!"
