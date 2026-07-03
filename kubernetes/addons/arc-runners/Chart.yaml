@@ -1,5 +1,5 @@
 apiVersion: v2
-name: arc-runners
+name: gha-runner-scale-set
 description: A Helm chart for Kubernetes ARC Runners
 type: application
 version: 0.1.0
