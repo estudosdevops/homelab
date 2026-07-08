@@ -1,0 +1,24 @@
+gha-runner-scale-set:
+  githubConfigUrl: "https://github.com/estudosdevops"
+
+  githubConfigSecret: github-token-secret
+
+  controllerServiceAccount:
+    name: arc-controller-gha-rs-controller
+    namespace: arc-system
+
+  minRunners: 1
+  maxRunners: 2
+
+  runnerScaleSetName: shared-runners
+
+  scaleSetLabels:
+    - kubernetes
+    - self-hosted
+
+  template:
+    spec:
+      containers:
+        - name: runner
+          image: ghcr.io/actions/actions-runner:latest
+          command: ["/home/runner/run.sh"]

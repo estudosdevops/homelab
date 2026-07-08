@@ -1,0 +1,54 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: "arc-controller"
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: "arc-controller"
+    app.kubernetes.io/managed-by: argocd
+    app.kubernetes.io/part-of: addons
+spec:
+  goTemplate: true
+  generators:
+    - clusters: {}
+  template:
+    metadata:
+      name: "arc-controller-{{ .name }}"
+      labels:
+        app.kubernetes.io/name: "arc-controller"
+        app.kubernetes.io/managed-by: argocd
+        app.kubernetes.io/part-of: addons
+    spec:
+      project: addons
+      destination:
+        server: "{{ .server }}"
+        namespace: "arc-system"
+      source:
+        repoURL: https://github.com/estudosdevops/homelab.git
+        targetRevision: refactor/homelab
+        path: "kubernetes/addons/arc-controller"
+        helm:
+          releaseName: "arc-controller"
+          valueFiles:
+            - values/common.yaml
+            - "values/{{ .name }}.yaml"
+          ignoreMissingValueFiles: true
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - ApplyOutOfSyncOnly=true
+  templatePatch: |
+    metadata:
+      name: "arc-controller-{{ .name }}"
+    spec:
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - ApplyOutOfSyncOnly=true
+          - ServerSideApply=true

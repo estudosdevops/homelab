@@ -1,0 +1,16 @@
+---
+name: Runner Test
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: shared-runners
+
+    steps:
+      - run: |
+          echo "Runner funcionando!"
+          uname -a
+          hostname

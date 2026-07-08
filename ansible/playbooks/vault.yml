@@ -13,6 +13,10 @@
       url: "{{ vault_addr }}"
       token: "{{ vault_token }}"
 
+    community.hashi_vault.vault_pki_generate_certificate:
+      url: "{{ vault_addr }}"
+      token: "{{ vault_token }}"
+
   tasks:
     - name: Apply vault role
       ansible.builtin.import_role:

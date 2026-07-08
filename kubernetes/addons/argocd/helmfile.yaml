@@ -23,7 +23,7 @@ releases:
         args:
           - "apply"
           - "-f"
-          - "values/addons.yaml"
+          - "./manifests"
 
   - name: argo-rollouts
     namespace: argo-rollouts

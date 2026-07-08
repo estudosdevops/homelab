@@ -1,6 +1,6 @@
 ---
 vault_data_dir: /opt/vault/data
-vault_addr: https://vault.homelab.tech
+vault_addr: https://vault.{{ domain }}
 vault_config:
   ui: true
 
@@ -32,3 +32,23 @@ vault_policies:
       path "prod/metadata/*" {
         capabilities = ["read", "list"]
       }
+  - name: cert-manager
+    rules: |
+      path "pki_int/sign/homelab-dot-tech" {
+        capabilities = ["update"]
+      }
+
+      path "pki_int/issue/homelab-dot-tech" {
+        capabilities = ["update"]
+      }
+
+vault_pki_int:
+  engine_mount_point: pki_int
+  role_name: homelab-dot-tech
+  ttl: 720h
+
+  certificates:
+    - vault.{{ domain }}
+    - proxmox.{{ domain }}
+    - adguard.{{ domain }}
+    - nginxproxymanager.{{ domain }}

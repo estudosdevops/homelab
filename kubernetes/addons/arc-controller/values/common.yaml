@@ -1,0 +1,2 @@
+gha-runner-scale-set-controller:
+  replicaCount: 1
