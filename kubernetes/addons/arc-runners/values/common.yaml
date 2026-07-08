@@ -12,10 +12,6 @@ gha-runner-scale-set:
 
   runnerScaleSetName: shared-runners
 
-  scaleSetLabels:
-    - kubernetes
-    - self-hosted
-
   template:
     spec:
       containers:
