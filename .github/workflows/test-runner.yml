@@ -7,10 +7,7 @@ on:
 
 jobs:
   test:
-    runs-on:
-      - kubernetes
-      - self-hosted
-      - shared-runners
+    runs-on: shared-runners
 
     steps:
       - run: |
