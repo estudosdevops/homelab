@@ -12,7 +12,7 @@ releases:
   - name: gateway-api-crds
     namespace: gateway-system
     chart: wiremind/gateway-api-crds
-    version: ~1.5.1
+    version: ~1.6.0
     installed: true
     labels:
       tier: crds
