@@ -1,0 +1,10 @@
+apiVersion: v2
+name: kubechecks
+description: A Helm chart for Kubernetes KubeChecks
+type: application
+version: 0.1.0
+
+dependencies:
+  - name: kubechecks
+    version: 3.0.0
+    repository: https://zapier.github.io/kubechecks/
