@@ -13,6 +13,7 @@ kubechecks:
       KUBECHECKS_ENABLE_PREUPGRADE: "true"
       KUBECHECKS_MAX_CONCURRENT_CHECKS: "8"
       KUBECHECKS_FALLBACK_K8S_VERSION: "1.36.1"
+      KUBECHECKS_ARGOCD_API_SERVER_ADDR: "argocd-server.argocd:80"
 
   deployment:
     envFrom:
