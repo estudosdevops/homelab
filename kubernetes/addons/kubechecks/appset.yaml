@@ -25,7 +25,7 @@ spec:
         namespace: "kubechecks"
       source:
         repoURL: https://github.com/estudosdevops/homelab.git
-        targetRevision: refactor/homelab
+        targetRevision: main
         path: "kubernetes/addons/kubechecks"
         helm:
           releaseName: "kubechecks"
