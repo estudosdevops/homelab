@@ -20,7 +20,7 @@ env:
 
 jobs:
   argocd-diff:
-    runs-on: shared-runners
+    runs-on: ubuntu-latest
     timeout-minutes: 15
 
     steps:
