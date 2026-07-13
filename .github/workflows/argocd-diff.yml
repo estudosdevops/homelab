@@ -19,7 +19,8 @@ env:
   ARGOCD_DIFF_PREVIEW_VERSION: v0.2.10
 
 jobs:
-  argocd-diff:
+  diff:
+    name: ArgoCD Diff Preview
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
