@@ -6,8 +6,8 @@ metadata:
   namespace: argocd
 spec:
   secretName: argocd-tls
-  duration: 24h
-  renewBefore: 1h
+  duration: 2160h
+  renewBefore: 360h
   commonName: argocd.homelab.tech
   dnsNames:
     - argocd.homelab.tech
