@@ -1,0 +1,24 @@
+kubechecks:
+  argocd:
+    namespace: argocd
+
+  configMap:
+    create: true
+    env:
+      KUBECHECKS_LOG_LEVEL: info
+      KUBECHECKS_VCS_TYPE: github
+      KUBECHECKS_ARGOCD_API_NAMESPACE: argocd
+      KUBECHECKS_MONITOR_ALL_APPLICATIONS: "true"
+      KUBECHECKS_ENABLE_KUBECONFORM: "true"
+      KUBECHECKS_ENABLE_PREUPGRADE: "true"
+      KUBECHECKS_MAX_CONCURRENT_CHECKS: "8"
+      KUBECHECKS_FALLBACK_K8S_VERSION: "1.36.1"
+
+  deployment:
+    envFrom:
+      - configMapRef:
+          name: kubechecks
+      - secretRef:
+          name: kubechecks-secret
+    resources: {}
+    args: ["controller"]
