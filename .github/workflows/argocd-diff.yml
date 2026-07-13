@@ -1,0 +1,61 @@
+name: ArgoCD Diff Preview
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "kubernetes/**"
+
+concurrency:
+  group: argocd-diff-preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  ARGOCD_DIFF_PREVIEW_VERSION: v0.2.10
+
+jobs:
+  diff:
+    name: ArgoCD Diff Preview
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          path: pull-request
+
+      - name: Checkout base branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.base_ref }}
+          path: main
+
+      - name: Generate Diff
+        run: |
+          docker run \
+            --network=host \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v "$(pwd)/main:/base-branch" \
+            -v "$(pwd)/pull-request:/target-branch" \
+            -v "$(pwd)/output:/output" \
+            -e TARGET_BRANCH=refs/pull/${{ github.event.number }}/merge \
+            -e REPO=${{ github.repository }} \
+            dagandersen/argocd-diff-preview:${{ env.ARGOCD_DIFF_PREVIEW_VERSION }}
+
+      - name: Post diff as PR comment
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr comment ${{ github.event.number }} \
+            --repo ${{ github.repository }} \
+            --body-file output/diff.md \
+            --edit-last || \
+          gh pr comment ${{ github.event.number }} \
+            --repo ${{ github.repository }} \
+            --body-file output/diff.md
