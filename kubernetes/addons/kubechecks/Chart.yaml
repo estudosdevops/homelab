@@ -6,5 +6,5 @@ version: 0.1.0
 
 dependencies:
   - name: kuebechecks
-    version: 3.2.1
+    version: 3.0.0
     repository: https://zapier.github.io/kubechecks/
