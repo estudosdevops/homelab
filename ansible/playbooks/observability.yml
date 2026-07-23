@@ -1,0 +1,8 @@
+---
+- name: Configure Observability
+  hosts: all
+  gather_facts: false
+  become: true
+
+  roles:
+    - role: observability

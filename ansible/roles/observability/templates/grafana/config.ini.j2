@@ -1,0 +1,25 @@
+[server]
+protocol = {{ grafana.server.protocol }}
+http_addr =
+http_port = {{ grafana.server.port }}
+domain = {{ grafana.server.host }}
+root_url = {{ grafana.server.public_protocol }}://{{ grafana.server.host }}/
+enable_gzip = true
+
+[security]
+admin_user = {{ grafana.admin.username }}
+admin_password = {{ grafana.admin.password }}
+disable_gravatar = true
+
+[users]
+allow_sign_up = false
+default_theme = dark
+
+[analytics]
+reporting_enabled = false
+check_for_updates = false
+check_for_plugin_updates = false
+
+[log]
+mode = console file
+level = info

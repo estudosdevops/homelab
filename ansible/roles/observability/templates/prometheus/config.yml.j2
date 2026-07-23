@@ -1,0 +1,30 @@
+global:
+  scrape_interval: {{ prometheus.global.scrape_interval }}
+  evaluation_interval: {{ prometheus.global.evaluation_interval }}
+
+rule_files:
+  - /etc/prometheus/rules/recording/*.yml
+  - /etc/prometheus/rules/alerting/*.yml
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets:
+          - localhost:{{ prometheus.server.port }}
+
+  - job_name: proxmox-cluster
+    static_configs:
+      - targets:
+          - localhost:{{ pve_exporter.server.port }}
+
+        labels:
+          cluster: homelab
+          datacenter: home
+          platform: proxmox
+          environment: homelab
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - localhost:{{ alertmanager.server.port }}

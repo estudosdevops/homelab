@@ -1,0 +1,20 @@
+apiVersion: 1
+prune: true
+
+datasources:
+{% for ds in grafana.datasources %}
+  - name: {{ ds.name }}
+    uid: {{ ds.uid }}
+    type: {{ ds.type }}
+    access: proxy
+    url: {{ ds.url }}
+    isDefault: {{ ds.default | default(false) | lower }}
+    editable: false
+
+{% if ds.type == "alertmanager" %}
+    jsonData:
+      implementation: {{ ds.implementation }}
+      handleGrafanaManagedAlerts: {{ ds.handleGrafanaManagedAlerts | lower }}
+{% endif %}
+
+{% endfor %}

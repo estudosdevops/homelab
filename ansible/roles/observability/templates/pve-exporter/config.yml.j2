@@ -1,0 +1,12 @@
+proxmox:
+  host: "{{ pve_exporter.api.host }}"
+  port: "{{ pve_exporter.api.port }}"
+
+  token_id: "{{ pve_exporter.api.token_id }}"
+  token_secret: "{{ pve_exporter.api.token }}"
+
+  insecure_skip_verify: {{ pve_exporter.api.insecure_skip_verify }}
+
+server:
+  listen_address: ":{{ pve_exporter.server.port }}"
+  metrics_path: "/metrics"

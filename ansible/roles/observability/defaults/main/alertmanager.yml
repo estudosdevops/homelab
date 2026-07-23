@@ -1,0 +1,28 @@
+---
+alertmanager:
+  version: "0.33.1"
+
+  user: "alertmanager"
+
+  server:
+    port: 9093
+
+  storage:
+    path: /var/lib/alertmanager
+
+  config:
+    path: /etc/alertmanager/alertmanager.yml
+
+  route:
+    group_by:
+      - alertname
+      - severity
+
+    group_wait: 30s
+    group_interval: 5m
+    repeat_interval: 4h
+
+  slack:
+    enabled: false
+    webhook_url: ""
+    channel: "#homelab-alerts"

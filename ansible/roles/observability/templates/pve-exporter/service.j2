@@ -1,0 +1,26 @@
+[Unit]
+Description=Proxmox VE Exporter for Prometheus
+Documentation=https://github.com/bigtcze/pve-exporter
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pve-exporter
+Group=pve-exporter
+ExecStart=/usr/local/bin/pve-exporter -config /etc/pve-exporter/config.yml
+Restart=on-failure
+RestartSec=5
+
+# Security hardening
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+ReadOnlyPaths=/
+ReadWritePaths=
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,24 @@
+---
+- name: Install prerequisites
+  ansible.builtin.import_tasks: prereqs.yml
+  tags: prereqs
+
+- name: Install Grafana
+  ansible.builtin.import_tasks: grafana.yml
+  tags: grafana
+
+- name: Install Alloy
+  ansible.builtin.import_tasks: alloy.yml
+  tags: alloy
+
+- name: Install Prometheus
+  ansible.builtin.import_tasks: prometheus.yml
+  tags: prometheus
+
+- name: Install Proxmox exporter
+  ansible.builtin.import_tasks: pve-exporter.yml
+  tags: pve-exporter
+
+- name: Install Alertmanager
+  ansible.builtin.import_tasks: alertmanager.yml
+  tags: alertmanager
