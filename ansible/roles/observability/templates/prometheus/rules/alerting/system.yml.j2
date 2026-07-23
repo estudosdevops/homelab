@@ -1,0 +1,68 @@
+groups:
+  - name: system
+    rules:
+      - alert: NodeDown
+        expr: up{job="proxmox-cluster"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: >
+            Node down: {% raw %}{{ $labels.node }}{% endraw %}
+
+          description: >
+            The node has not been reachable for more than 5 minutes.
+
+      - alert: NodeCPUHigh
+        expr: instance:node_cpu_utilisation:ratio > 0.90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: >
+            High CPU usage on {% raw %}{{ $labels.instance }}{% endraw %}
+
+          description: >
+            CPU utilization has been above 90% for more than 5 minutes.
+            Current value: {% raw %}{{ $value | humanizePercentage }}{% endraw %}
+
+      - alert: NodeMemoryHigh
+        expr: instance:node_memory_utilisation:ratio > 0.90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: >
+            High memory usage on {% raw %}{{ $labels.instance }}{% endraw %}
+
+          description: >
+            Memory utilization has been above 90% for more than 5 minutes.
+            Current value: {% raw %}{{ $value | humanizePercentage }}{% endraw %}
+
+      - alert: NodeFilesystemHigh
+        expr: instance:node_filesystem_utilisation:ratio > 0.90
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: >
+            Filesystem usage is high on {% raw %}{{ $labels.instance }}{% endraw %}
+
+          description: >
+            Filesystem utilization has been above 90% for more than 10 minutes.
+
+            Current value: {% raw %}{{ $value | humanizePercentage }}{% endraw %}
+
+      - alert: NodeFilesystemAlmostOutOfFiles
+        expr: instance:node_filesystem_inode_utilisation:ratio > 0.90
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: >
+            Filesystem inode usage is high on {% raw %}{{ $labels.instance }}{% endraw %}
+
+          description: >
+            Filesystem inode utilization has been above 90% for more than 10 minutes.
+
+            Current value: {% raw %}{{ $value | humanizePercentage }}{% endraw %}

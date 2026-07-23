@@ -1,0 +1,18 @@
+global:
+
+route:
+  receiver: default
+
+  group_by:
+{% for label in alertmanager.route.group_by %}
+    - {{ label }}
+{% endfor %}
+
+  group_wait: {{ alertmanager.route.group_wait }}
+
+  group_interval: {{ alertmanager.route.group_interval }}
+
+  repeat_interval: {{ alertmanager.route.repeat_interval }}
+
+receivers:
+  - name: default

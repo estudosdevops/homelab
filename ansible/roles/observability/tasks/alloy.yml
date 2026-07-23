@@ -1,0 +1,24 @@
+---
+- name: Configure Grafana repository
+  ansible.builtin.import_tasks: grafana_repo.yml
+
+- name: Install Alloy
+  ansible.builtin.apt:
+    name: alloy
+    state: present
+    update_cache: true
+
+- name: Configure Alloy
+  ansible.builtin.template:
+    src: alloy/config.j2
+    dest: /etc/alloy/config.alloy
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart Alloy
+
+- name: Enable Alloy
+  ansible.builtin.systemd:
+    name: alloy
+    enabled: true
+    state: started

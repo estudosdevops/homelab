@@ -1,0 +1,38 @@
+logging {
+  level = "info"
+}
+
+prometheus.exporter.unix "node" {
+}
+
+discovery.relabel "node" {
+  targets = prometheus.exporter.unix.node.targets
+  rule {
+    target_label = "node_name"
+    replacement  = constants.hostname
+  }
+  rule {
+    target_label = "job"
+    replacement  = "linux/node"
+  }
+}
+
+prometheus.scrape "node" {
+  targets = discovery.relabel.node.output
+  forward_to = [
+    prometheus.remote_write.prometheus.receiver,
+  ]
+  scrape_interval = "{{ alloy.scrape_interval }}"
+}
+
+prometheus.remote_write "prometheus" {
+  external_labels = {
+    cluster = "homelab",
+    datacenter = "home",
+    platform = "proxmox",
+    environment = "homelab",
+  }
+  endpoint {
+    url = "{{ prometheus.remote_write_url }}"
+  }
+}

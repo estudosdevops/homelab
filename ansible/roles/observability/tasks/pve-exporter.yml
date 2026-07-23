@@ -1,0 +1,36 @@
+---
+- name: Download pve exporter binary
+  ansible.builtin.get_url:
+    url: https://github.com/bigtcze/pve-exporter/releases/latest/download/pve-exporter-linux-amd64
+    dest: /usr/local/bin/pve-exporter
+    mode: "0755"
+    owner: root
+    group: root
+
+- name: Create pve exporter config directory
+  ansible.builtin.file:
+    path: /etc/pve-exporter
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Create pve exporter user
+  ansible.builtin.user:
+    name: "{{ pve_exporter.user }}"
+    system: true
+    shell: /usr/sbin/nologin
+
+- name: Configure Proxmox Exporter
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: "{{ item.mode }}"
+  loop: "{{ pve_exporter.templates }}"
+  loop_control:
+    label: "{{ item.dest }}"
+  notify:
+    - Reload systemd
+    - Restart pve exporter

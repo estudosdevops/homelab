@@ -1,0 +1,24 @@
+---
+pve_exporter:
+  server:
+    port: 9221
+
+  user: pve-exporter
+
+  api:
+    port: 8006
+    host: 192.168.20.2
+    insecure_skip_verify: true
+    token_id: monitoring@pve!prometheus
+    token: "{{ pve_exporter_token }}"
+
+  templates:
+    - src: pve-exporter/config.yml.j2
+      dest: /etc/pve-exporter/config.yml
+      owner: "{{ pve_exporter.user }}"
+      group: "{{ pve_exporter.user }}"
+      mode: "0600"
+
+    - src: pve-exporter/service.j2
+      dest: /etc/systemd/system/pve-exporter.service
+      mode: "0644"

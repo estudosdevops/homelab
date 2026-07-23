@@ -1,0 +1,6 @@
+ARGS="\
+--config.file=/etc/prometheus/prometheus.yml \
+--storage.tsdb.path=/var/lib/prometheus \
+--storage.tsdb.retention.time={{ prometheus.storage.retention }} \
+--web.enable-remote-write-receiver \
+--query.max-concurrency=10"

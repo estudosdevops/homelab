@@ -1,0 +1,53 @@
+groups:
+  - name: system
+    interval: 30s
+    rules:
+      - record: instance:node_cpu_utilisation:ratio
+        expr: |
+          1 -
+          avg without (cpu, mode) (
+            rate(node_cpu_seconds_total{job="linux/node", mode="idle"}[5m])
+          )
+
+      - record: instance:node_memory_utilisation:ratio
+        expr: |
+          1 -
+          (
+            node_memory_MemAvailable_bytes{job="linux/node"}
+            /
+            node_memory_MemTotal_bytes{job="linux/node"}
+          )
+
+      - record: instance:node_filesystem_utilisation:ratio
+        expr: |
+          1 -
+          (
+            node_filesystem_avail_bytes{
+              job="linux/node",
+              fstype!~"tmpfs|overlay|squashfs",
+              mountpoint!~"/run.*|/var/lib/docker.*|/var/lib/containerd.*|/var/lib/kubelet.*"
+            }
+            /
+            node_filesystem_size_bytes{
+              job="linux/node",
+              fstype!~"tmpfs|overlay|squashfs",
+              mountpoint!~"/run.*|/var/lib/docker.*|/var/lib/containerd.*|/var/lib/kubelet.*"
+            }
+          )
+
+      - record: instance:node_filesystem_inode_utilisation:ratio
+        expr: |
+          1 -
+          (
+            node_filesystem_files_free{
+              job="linux/node",
+              fstype!~"tmpfs|overlay|squashfs",
+              mountpoint!~"/run.*|/var/lib/docker.*|/var/lib/containerd.*|/var/lib/kubelet.*"
+            }
+            /
+            node_filesystem_files{
+              job="linux/node",
+              fstype!~"tmpfs|overlay|squashfs",
+              mountpoint!~"/run.*|/var/lib/docker.*|/var/lib/containerd.*|/var/lib/kubelet.*"
+            }
+          )

@@ -1,0 +1,24 @@
+---
+prometheus:
+  user: prometheus
+
+  server:
+    port: 9090
+
+  global:
+    scrape_interval: 30s
+    evaluation_interval: 30s
+
+  storage:
+    retention: 15d
+
+  remote_write_url: http://192.168.20.21:9090/api/v1/write
+
+  templates:
+    - src: prometheus/config.yml.j2
+      dest: /etc/prometheus/prometheus.yml
+      mode: "0640"
+
+    - src: prometheus/default.j2
+      dest: /etc/default/prometheus
+      mode: "0644"

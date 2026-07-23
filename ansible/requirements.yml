@@ -14,3 +14,5 @@ collections:
     version: ">=7.0.0"
   - name: kubernetes.core
     version: ">=6.0.0"
+  - name: grafana.grafana
+    version: ">=2.3.0"

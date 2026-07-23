@@ -1,0 +1,50 @@
+---
+- name: Install Prometheus
+  ansible.builtin.apt:
+    name: prometheus
+    state: present
+    update_cache: true
+
+- name: Create Prometheus directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ prometheus.user }}"
+    group: "{{ prometheus.user }}"
+    mode: "0755"
+  loop:
+    - /etc/prometheus
+    - /etc/prometheus/rules
+    - /etc/prometheus/rules/recording
+    - /etc/prometheus/rules/alerting
+
+- name: Configure Prometheus templates
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: prometheus
+    mode: "{{ item.mode }}"
+  loop: "{{ prometheus.templates }}"
+  notify: Restart Prometheus
+
+- name: Ensure Prometheus is enabled
+  ansible.builtin.systemd:
+    name: prometheus
+    enabled: true
+    state: started
+
+- name: Configure Prometheus rules
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: prometheus
+    mode: "0644"
+  loop:
+    - src: prometheus/rules/recording/system.yml.j2
+      dest: /etc/prometheus/rules/recording/system.yml
+
+    - src: prometheus/rules/alerting/system.yml.j2
+      dest: /etc/prometheus/rules/alerting/system.yml
+  notify: Restart Prometheus
