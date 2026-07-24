@@ -1,0 +1,46 @@
+---
+grafana-alloy:
+  alloy:
+    configMap:
+      content: |-
+        logging {
+          level = "info"
+        }
+
+        prometheus.exporter.unix "node" {
+          procfs_path = "/host/proc"
+          sysfs_path  = "/host/sys"
+          rootfs_path = "/host/root"
+        }
+
+        discovery.relabel "node" {
+          targets = prometheus.exporter.unix.node.targets
+          rule {
+            target_label = "node_name"
+            replacement  = constants.hostname
+          }
+          rule {
+            target_label = "job"
+            replacement  = "linux/node"
+          }
+        }
+
+        prometheus.scrape "node" {
+          targets = discovery.relabel.node.output
+          forward_to = [
+            prometheus.remote_write.prometheus.receiver,
+          ]
+          scrape_interval = "30s"
+        }
+
+        prometheus.remote_write "prometheus" {
+          external_labels = {
+            cluster = "homelab-prod",
+            datacenter = "home",
+            platform = "kubernetes",
+            environment = "production",
+          }
+          endpoint {
+            url = "http://192.168.20.21:9090/api/v1/write"
+          }
+        }
