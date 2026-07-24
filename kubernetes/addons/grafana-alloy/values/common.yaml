@@ -23,6 +23,15 @@ alloy:
             path: /sys
 
   alloy:
+    extraEnv:
+      - name: K8S_NODE_NAME
+        valueFrom:
+          fieldRef:
+            fieldPath: spec.nodeName
+
+      - name: CLUSTER_NAME
+        value: homelab-prod
+
     mounts:
       extra:
         - name: host-root
@@ -51,7 +60,7 @@ alloy:
           targets = prometheus.exporter.unix.node.targets
           rule {
             target_label = "node_name"
-            replacement  = constants.hostname
+            replacement  = sys.env("K8S_NODE_NAME")
           }
           rule {
             target_label = "job"
@@ -69,7 +78,7 @@ alloy:
 
         prometheus.remote_write "prometheus" {
           external_labels = {
-            cluster = "homelab-prod",
+            cluster = sys.env("CLUSTER_NAME"),
             datacenter = "home",
             platform = "kubernetes",
             environment = "production",
