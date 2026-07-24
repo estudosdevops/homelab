@@ -1,0 +1,53 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: "grafana-alloy"
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: "grafana-alloy"
+    app.kubernetes.io/managed-by: argocd
+    app.kubernetes.io/part-of: addons
+spec:
+  goTemplate: true
+  generators:
+    - clusters: {}
+  template:
+    metadata:
+      name: "grafana-alloy-{{ .name }}"
+      labels:
+        app.kubernetes.io/name: "grafana-alloy"
+        app.kubernetes.io/managed-by: argocd
+        app.kubernetes.io/part-of: addons
+    spec:
+      project: addons
+      destination:
+        server: "{{ .server }}"
+        namespace: "grafana-alloy"
+      source:
+        repoURL: https://github.com/estudosdevops/homelab.git
+        targetRevision: feat/ansible-role-observability
+        path: "kubernetes/addons/grafana-alloy"
+        helm:
+          releaseName: "grafana-alloy"
+          valueFiles:
+            - values/common.yaml
+            - "values/{{ .name }}.yaml"
+          ignoreMissingValueFiles: true
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - ApplyOutOfSyncOnly=true
+  templatePatch: |
+    metadata:
+      name: "grafana-alloy-{{ .name }}"
+    spec:
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - ApplyOutOfSyncOnly=true
