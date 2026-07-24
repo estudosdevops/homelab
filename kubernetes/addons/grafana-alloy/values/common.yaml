@@ -24,7 +24,7 @@ alloy:
 
   alloy:
     extraEnv:
-      - name: K8S_NODE_NAME
+      - name: NODE_NAME
         valueFrom:
           fieldRef:
             fieldPath: spec.nodeName
@@ -60,7 +60,7 @@ alloy:
           targets = prometheus.exporter.unix.node.targets
           rule {
             target_label = "node_name"
-            replacement  = sys.env("K8S_NODE_NAME")
+            replacement  = sys.env("NODE_NAME")
           }
           rule {
             target_label = "job"
