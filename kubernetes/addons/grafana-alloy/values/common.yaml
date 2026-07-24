@@ -49,7 +49,6 @@ alloy:
         logging {
           level = "info"
         }
-
         prometheus.exporter.unix "node" {
           procfs_path = "/host/proc"
           sysfs_path  = "/host/sys"
@@ -76,11 +75,29 @@ alloy:
           scrape_interval = "30s"
         }
 
+        discovery.relabel "kube_state_metrics" {
+          targets = [{
+            "__address__" = "kube-state-metrics.kube-system.svc.cluster.local:8080",
+          }]
+          rule {
+            target_label = "job"
+            replacement  = "kube-state-metrics"
+          }
+        }
+
+        prometheus.scrape "kube_state_metrics" {
+          targets = discovery.relabel.kube_state_metrics.output
+          forward_to = [
+            prometheus.remote_write.prometheus.receiver,
+          ]
+          scrape_interval = "30s"
+        }
+
         prometheus.remote_write "prometheus" {
           external_labels = {
-            cluster = sys.env("CLUSTER_NAME"),
-            datacenter = "home",
-            platform = "kubernetes",
+            cluster     = sys.env("CLUSTER_NAME"),
+            datacenter  = "home",
+            platform    = "kubernetes",
             environment = "production",
           }
           endpoint {
