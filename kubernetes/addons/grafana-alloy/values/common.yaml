@@ -165,6 +165,12 @@ alloy:
           }
         }
 
+        prometheus.scrape "coredns" {
+          targets         = discovery.relabel.coredns.output
+          scrape_interval = "30s"
+          forward_to      = [prometheus.remote_write.prometheus.receiver]
+        }
+
         prometheus.remote_write "prometheus" {
           external_labels = {
             cluster     = sys.env("CLUSTER_NAME"),
