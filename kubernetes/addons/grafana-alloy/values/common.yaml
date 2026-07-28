@@ -122,10 +122,10 @@ alloy:
 
         prometheus.remote_write "prometheus" {
           external_labels = {
-            cluster     = sys.env("CLUSTER_NAME")
-            datacenter  = "home"
-            platform    = "kubernetes"
-            environment = "production"
+            cluster     = sys.env("CLUSTER_NAME"),
+            datacenter  = "home",
+            platform    = "kubernetes",
+            environment = "production",
           }
 
           endpoint {
