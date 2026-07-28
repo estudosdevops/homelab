@@ -65,6 +65,7 @@ alloy:
         discovery.relabel "node" {
           targets = prometheus.exporter.unix.node.targets
 
+          // Força as labels 'node' e 'instance' a serem o nome do Node K8s
           rule {
             target_label = "node"
             replacement  = sys.env("NODE_NAME")
@@ -79,11 +80,15 @@ alloy:
             target_label = "nodename"
             replacement  = sys.env("NODE_NAME")
           }
+
+          rule {
+            target_label = "job"
+            replacement  = "linux/node"
+          }
         }
 
         prometheus.scrape "node" {
           targets         = discovery.relabel.node.output
-          job_name        = "linux/node"
           scrape_interval = "30s"
           forward_to      = [prometheus.remote_write.prometheus.receiver]
         }
