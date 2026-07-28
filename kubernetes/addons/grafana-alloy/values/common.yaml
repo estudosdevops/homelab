@@ -52,9 +52,6 @@ alloy:
           level = "info"
         }
 
-        # -------------------------------------------------------------------
-        # 1. MÉTRICAS DO NODE (TALOS OS / HARDWARE)
-        # -------------------------------------------------------------------
         prometheus.exporter.unix "node" {
           procfs_path = "/host/proc"
           sysfs_path  = "/host/sys"
@@ -81,9 +78,6 @@ alloy:
           forward_to      = [prometheus.remote_write.prometheus.receiver]
         }
 
-        # -------------------------------------------------------------------
-        # 2. MÉTRICAS DO CLUSTER (KUBE-STATE-METRICS)
-        # -------------------------------------------------------------------
         discovery.relabel "kube_state_metrics" {
           targets = [{
             "__address__" = "kube-state-metrics.kube-system.svc.cluster.local:8080",
@@ -101,9 +95,6 @@ alloy:
           forward_to      = [prometheus.remote_write.prometheus.receiver]
         }
 
-        # -------------------------------------------------------------------
-        # 3. MÉTRICAS DOS CONTÊINERES (cAdvisor NATIVO DO KUBELET DO TALOS)
-        # -------------------------------------------------------------------
         discovery.relabel "cadvisor" {
           targets = [{
             "__address__" = sys.env("NODE_IP") + ":10250",
@@ -130,9 +121,6 @@ alloy:
           forward_to      = [prometheus.remote_write.prometheus.receiver]
         }
 
-        # -------------------------------------------------------------------
-        # DESTINO ÚNICO (VM DE OBSERVABILIDADE)
-        # -------------------------------------------------------------------
         prometheus.remote_write "prometheus" {
           external_labels = {
             cluster     = sys.env("CLUSTER_NAME")
