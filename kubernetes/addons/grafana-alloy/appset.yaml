@@ -25,7 +25,7 @@ spec:
         namespace: "grafana-alloy"
       source:
         repoURL: https://github.com/estudosdevops/homelab.git
-        targetRevision: main
+        targetRevision: feat/ansible-role-observability
         path: "kubernetes/addons/grafana-alloy"
         helm:
           releaseName: "grafana-alloy"

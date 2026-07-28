@@ -1,11 +1,11 @@
 ---
 alloy:
   controller:
+    type: daemonset
     tolerations:
       - key: node-role.kubernetes.io/control-plane
         operator: Exists
         effect: NoSchedule
-
       - key: node-role.kubernetes.io/master
         operator: Exists
         effect: NoSchedule
@@ -28,7 +28,10 @@ alloy:
         valueFrom:
           fieldRef:
             fieldPath: spec.nodeName
-
+      - name: NODE_IP
+        valueFrom:
+          fieldRef:
+            fieldPath: status.hostIP
       - name: CLUSTER_NAME
         value: homelab-prod
 
@@ -49,6 +52,10 @@ alloy:
         logging {
           level = "info"
         }
+
+        // -------------------------------------------------------------------
+        // 1. MÉTRICAS DO NODE (TALOS OS / HARDWARE)
+        // -------------------------------------------------------------------
         prometheus.exporter.unix "node" {
           procfs_path = "/host/proc"
           sysfs_path  = "/host/sys"
@@ -57,10 +64,23 @@ alloy:
 
         discovery.relabel "node" {
           targets = prometheus.exporter.unix.node.targets
+
+          // Força as labels 'node' e 'instance' a serem o nome do Node K8s
           rule {
-            target_label = "node_name"
+            target_label = "node"
             replacement  = sys.env("NODE_NAME")
           }
+
+          rule {
+            target_label = "instance"
+            replacement  = sys.env("NODE_NAME")
+          }
+
+          rule {
+            target_label = "nodename"
+            replacement  = sys.env("NODE_NAME")
+          }
+
           rule {
             target_label = "job"
             replacement  = "linux/node"
@@ -68,17 +88,19 @@ alloy:
         }
 
         prometheus.scrape "node" {
-          targets = discovery.relabel.node.output
-          forward_to = [
-            prometheus.remote_write.prometheus.receiver,
-          ]
+          targets         = discovery.relabel.node.output
           scrape_interval = "30s"
+          forward_to      = [prometheus.remote_write.prometheus.receiver]
         }
 
+        // -------------------------------------------------------------------
+        // 2. MÉTRICAS DO CLUSTER (KUBE-STATE-METRICS)
+        // -------------------------------------------------------------------
         discovery.relabel "kube_state_metrics" {
           targets = [{
             "__address__" = "kube-state-metrics.kube-system.svc.cluster.local:8080",
           }]
+
           rule {
             target_label = "job"
             replacement  = "kube-state-metrics"
@@ -86,13 +108,109 @@ alloy:
         }
 
         prometheus.scrape "kube_state_metrics" {
-          targets = discovery.relabel.kube_state_metrics.output
-          forward_to = [
-            prometheus.remote_write.prometheus.receiver,
-          ]
+          targets         = discovery.relabel.kube_state_metrics.output
           scrape_interval = "30s"
+          forward_to      = [prometheus.remote_write.prometheus.receiver]
         }
 
+        // -------------------------------------------------------------------
+        // 3. MÉTRICAS DOS CONTÊINERES (cAdvisor NATIVO DO KUBELET DO TALOS)
+        // -------------------------------------------------------------------
+        discovery.relabel "cadvisor" {
+          targets = [{
+            "__address__" = sys.env("NODE_IP") + ":10250",
+          }]
+
+          rule {
+            target_label = "node"
+            replacement  = sys.env("NODE_NAME")
+          }
+
+          rule {
+            target_label = "instance"
+            replacement  = sys.env("NODE_NAME")
+          }
+
+          rule {
+            target_label = "job"
+            replacement  = "cadvisor"
+          }
+        }
+
+        prometheus.scrape "cadvisor" {
+          targets      = discovery.relabel.cadvisor.output
+          metrics_path = "/metrics/cadvisor"
+          scheme       = "https"
+
+          tls_config {
+            insecure_skip_verify = true
+          }
+          bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+
+          scrape_interval = "30s"
+          forward_to      = [prometheus.remote_write.prometheus.receiver]
+        }
+
+        // -------------------------------------------------------------------
+        // 4. MÉTRICAS DO KUBERNETES API SERVER
+        // -------------------------------------------------------------------
+        discovery.relabel "apiserver" {
+          targets = [{
+            "__address__" = "kubernetes.default.svc.cluster.local:443",
+          }]
+
+          rule {
+            target_label = "job"
+            replacement  = "apiserver"
+          }
+        }
+
+        prometheus.scrape "apiserver" {
+          targets      = discovery.relabel.apiserver.output
+          scheme       = "https"
+          tls_config {
+            insecure_skip_verify = true
+          }
+          bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+
+          scrape_interval = "30s"
+          forward_to      = [prometheus.remote_write.prometheus.receiver]
+        }
+
+        // -------------------------------------------------------------------
+        // 5. MÉTRICAS DO COREDNS (Descoberta Automática de Pods)
+        // -------------------------------------------------------------------
+        discovery.kubernetes "coredns_pods" {
+          role = "pod"
+          namespaces {
+            names = ["kube-system"]
+          }
+        }
+
+        discovery.relabel "coredns" {
+          targets = discovery.kubernetes.coredns_pods.targets
+
+          rule {
+            source_labels = ["__meta_kubernetes_pod_container_port_number"]
+            action        = "keep"
+            regex         = "9153"
+          }
+
+          rule {
+            target_label = "job"
+            replacement  = "coredns"
+          }
+        }
+
+        prometheus.scrape "coredns" {
+          targets         = discovery.relabel.coredns.output
+          scrape_interval = "30s"
+          forward_to      = [prometheus.remote_write.prometheus.receiver]
+        }
+
+        // -------------------------------------------------------------------
+        // DESTINO ÚNICO (VM DE OBSERVABILIDADE)
+        // -------------------------------------------------------------------
         prometheus.remote_write "prometheus" {
           external_labels = {
             cluster     = sys.env("CLUSTER_NAME"),
@@ -100,6 +218,7 @@ alloy:
             platform    = "kubernetes",
             environment = "production",
           }
+
           endpoint {
             url = "http://192.168.20.21:9090/api/v1/write"
           }
