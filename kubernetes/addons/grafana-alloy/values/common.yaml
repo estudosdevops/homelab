@@ -83,7 +83,7 @@ alloy:
 
           rule {
             target_label = "job"
-            replacement  = "linux/node"
+            replacement  = "node-exporter"
           }
         }
 
