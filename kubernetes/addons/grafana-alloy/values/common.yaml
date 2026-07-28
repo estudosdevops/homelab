@@ -21,6 +21,16 @@ alloy:
         - name: host-sys
           hostPath:
             path: /sys
+        # 👇 NOVOS VOLUMES PARA O CADVISOR
+        - name: host-run
+          hostPath:
+            path: /var/run
+        - name: host-cgroup
+          hostPath:
+            path: /sys/fs/cgroup
+        - name: host-containerd
+          hostPath:
+            path: /run/containerd
 
   alloy:
     extraEnv:
@@ -43,12 +53,23 @@ alloy:
         - name: host-sys
           mountPath: /host/sys
           readOnly: true
+        # 👇 NOVAS MONTAGENS PARA O CADVISOR
+        - name: host-run
+          mountPath: /var/run
+          readOnly: true
+        - name: host-cgroup
+          mountPath: /sys/fs/cgroup
+          readOnly: true
+        - name: host-containerd
+          mountPath: /run/containerd
+          readOnly: true
 
     configMap:
       content: |-
         logging {
-          level = "info"
+         level = "info"
         }
+
         prometheus.exporter.unix "node" {
           procfs_path = "/host/proc"
           sysfs_path  = "/host/sys"
@@ -57,49 +78,80 @@ alloy:
 
         discovery.relabel "node" {
           targets = prometheus.exporter.unix.node.targets
+
           rule {
             target_label = "node_name"
             replacement  = sys.env("NODE_NAME")
           }
+
           rule {
             target_label = "job"
-            replacement  = "linux/node"
+            replacement = "linux/node"
           }
         }
 
         prometheus.scrape "node" {
           targets = discovery.relabel.node.output
+
+          scrape_interval = "30s"
+
           forward_to = [
             prometheus.remote_write.prometheus.receiver,
           ]
-          scrape_interval = "30s"
         }
 
         discovery.relabel "kube_state_metrics" {
           targets = [{
             "__address__" = "kube-state-metrics.kube-system.svc.cluster.local:8080",
           }]
+
           rule {
             target_label = "job"
-            replacement  = "kube-state-metrics"
+            replacement = "kube-state-metrics"
           }
         }
 
         prometheus.scrape "kube_state_metrics" {
           targets = discovery.relabel.kube_state_metrics.output
+
+          scrape_interval = "30s"
+
           forward_to = [
             prometheus.remote_write.prometheus.receiver,
           ]
+        }
+
+        prometheus.exporter.cadvisor "containers" {
+        }
+
+        discovery.relabel "cadvisor" {
+          targets = prometheus.exporter.cadvisor.containers.targets
+
+          rule {
+            target_label = "job"
+            replacement = "cadvisor"
+          }
+        }
+
+        prometheus.scrape "cadvisor" {
+          targets = discovery.relabel.cadvisor.output
+
           scrape_interval = "30s"
+
+          forward_to = [
+            prometheus.remote_write.prometheus.receiver,
+          ]
         }
 
         prometheus.remote_write "prometheus" {
+
           external_labels = {
-            cluster     = sys.env("CLUSTER_NAME"),
-            datacenter  = "home",
-            platform    = "kubernetes",
-            environment = "production",
+            cluster     = sys.env("CLUSTER_NAME")
+            datacenter  = "home"
+            platform    = "kubernetes"
+            environment = "production"
           }
+
           endpoint {
             url = "http://192.168.20.21:9090/api/v1/write"
           }
