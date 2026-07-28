@@ -120,6 +120,46 @@ alloy:
           forward_to      = [prometheus.remote_write.prometheus.receiver]
         }
 
+        discovery.relabel "apiserver" {
+          targets = [{
+            "__address__" = "kubernetes.default.svc.cluster.local:443",
+          }]
+
+          rule {
+            target_label = "job"
+            replacement  = "apiserver"
+          }
+        }
+
+        prometheus.scrape "apiserver" {
+          targets      = discovery.relabel.apiserver.output
+          scheme       = "https"
+          tls_config {
+            insecure_skip_verify = true
+          }
+          bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+
+          scrape_interval = "30s"
+          forward_to      = [prometheus.remote_write.prometheus.receiver]
+        }
+
+        discovery.relabel "coredns" {
+          targets = [{
+            "__address__" = "coredns.kube-system.svc.cluster.local:9153",
+          }]
+
+          rule {
+            target_label = "job"
+            replacement  = "coredns"
+          }
+        }
+
+        prometheus.scrape "coredns" {
+          targets         = discovery.relabel.coredns.output
+          scrape_interval = "30s"
+          forward_to      = [prometheus.remote_write.prometheus.receiver]
+        }
+
         prometheus.remote_write "prometheus" {
           external_labels = {
             cluster     = sys.env("CLUSTER_NAME"),
