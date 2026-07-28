@@ -111,7 +111,6 @@ alloy:
           metrics_path = "/metrics/cadvisor"
           scheme       = "https"
 
-          # Autenticação segura com o Kubelet via Token do Pod
           tls_config {
             insecure_skip_verify = true
           }
