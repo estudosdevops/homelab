@@ -21,10 +21,6 @@ alloy:
         - name: host-sys
           hostPath:
             path: /sys
-        # 👇 NOVOS VOLUMES PARA O CADVISOR
-        - name: host-run
-          hostPath:
-            path: /var/run
         - name: host-cgroup
           hostPath:
             path: /sys/fs/cgroup
@@ -52,10 +48,6 @@ alloy:
           readOnly: true
         - name: host-sys
           mountPath: /host/sys
-          readOnly: true
-        # 👇 NOVAS MONTAGENS PARA O CADVISOR
-        - name: host-run
-          mountPath: /var/run
           readOnly: true
         - name: host-cgroup
           mountPath: /sys/fs/cgroup
