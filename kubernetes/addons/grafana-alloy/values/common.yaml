@@ -143,21 +143,10 @@ alloy:
           forward_to      = [prometheus.remote_write.prometheus.receiver]
         }
 
-        discovery.kubernetes "coredns_pods" {
-          role = "pod"
-          namespaces {
-            names = ["kube-system"]
-          }
-        }
-
         discovery.relabel "coredns" {
-          targets = discovery.kubernetes.coredns_pods.targets
-
-          rule {
-            source_labels = ["__meta_kubernetes_pod_container_port_number"]
-            action        = "keep"
-            regex         = "9153"
-          }
+          targets = [{
+            "__address__" = "coredns.kube-system.svc.cluster.local:9153",
+          }]
 
           rule {
             target_label = "job"
