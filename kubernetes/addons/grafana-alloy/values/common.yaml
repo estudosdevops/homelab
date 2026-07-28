@@ -82,6 +82,11 @@ alloy:
           }
 
           rule {
+            target_label = "nodename"
+            replacement  = sys.env("NODE_NAME")
+          }
+
+          rule {
             target_label = "job"
             replacement  = "linux/node"
           }
