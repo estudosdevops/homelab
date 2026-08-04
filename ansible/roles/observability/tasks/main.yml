@@ -22,3 +22,7 @@
 - name: Install Alertmanager
   ansible.builtin.import_tasks: alertmanager.yml
   tags: alertmanager
+
+- name: Install Loki
+  ansible.builtin.import_tasks: loki.yml
+  tags: loki

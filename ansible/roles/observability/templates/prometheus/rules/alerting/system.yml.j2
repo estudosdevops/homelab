@@ -1,68 +1,186 @@
 groups:
   - name: system
     rules:
-      - alert: NodeDown
-        expr: up{job="proxmox-cluster"} == 0
-        for: 5m
-        labels:
-          severity: critical
-        annotations:
-          summary: >
-            Node down: {% raw %}{{ $labels.node }}{% endraw %}
-
-          description: >
-            The node has not been reachable for more than 5 minutes.
-
       - alert: NodeCPUHigh
-        expr: instance:node_cpu_utilisation:ratio > 0.90
+        expr: instance:node_cpu_utilisation:ratio > 0.85
         for: 5m
         labels:
           severity: warning
+
         annotations:
+          category: System
+
           summary: >
             High CPU usage on {% raw %}{{ $labels.instance }}{% endraw %}
 
           description: >
-            CPU utilization has been above 90% for more than 5 minutes.
-            Current value: {% raw %}{{ $value | humanizePercentage }}{% endraw %}
+            CPU utilization has been above 85% for more than 5 minutes.
+
+          current_value: '{% raw %}{{ $value | humanizePercentage }}{% endraw %}'
+
+          dashboard: >
+            https://grafana.homelab.tech/d/rYdddlPWk/nodes
+
+          runbook: >
+            https://wiki.homelab.tech/runbooks/nodecpuhigh
+
+      - alert: NodeCPUHigh
+        expr: instance:node_cpu_utilisation:ratio > 0.95
+        for: 5m
+        labels:
+          severity: critical
+
+        annotations:
+          category: System
+
+          summary: >
+            High CPU usage on {% raw %}{{ $labels.instance }}{% endraw %}
+
+          description: >
+            CPU utilization has been above 95% for more than 5 minutes.
+
+          current_value: '{% raw %}{{ $value | humanizePercentage }}{% endraw %}'
+
+          dashboard: >
+            https://grafana.homelab.tech/d/rYdddlPWk/nodes
+
+          runbook: >
+            https://wiki.homelab.tech/runbooks/nodecpuhigh
 
       - alert: NodeMemoryHigh
-        expr: instance:node_memory_utilisation:ratio > 0.90
+        expr: instance:node_memory_utilisation:ratio > 0.85
         for: 5m
         labels:
           severity: warning
+
         annotations:
+          category: System
+
           summary: >
             High memory usage on {% raw %}{{ $labels.instance }}{% endraw %}
 
           description: >
-            Memory utilization has been above 90% for more than 5 minutes.
-            Current value: {% raw %}{{ $value | humanizePercentage }}{% endraw %}
+            Memory utilization has been above 85% for more than 5 minutes.
+
+          current_value: '{% raw %}{{ $value | humanizePercentage }}{% endraw %}'
+
+          dashboard: >
+            https://grafana.homelab.tech/d/rYdddlPWk/nodes
+
+          runbook: >
+            https://wiki.homelab.tech/runbooks/nodecpuhigh
+
+      - alert: NodeMemoryHigh
+        expr: instance:node_memory_utilisation:ratio > 0.95
+        for: 5m
+        labels:
+          severity: critical
+
+        annotations:
+          category: System
+
+          summary: >
+            High memory usage on {% raw %}{{ $labels.instance }}{% endraw %}
+
+          description: >
+            Memory utilization has been above 95% for more than 5 minutes.
+
+          current_value: '{% raw %}{{ $value | humanizePercentage }}{% endraw %}'
+
+          dashboard: >
+            https://grafana.homelab.tech/d/rYdddlPWk/nodes
+
+          runbook: >
+            https://wiki.homelab.tech/runbooks/nodecpuhigh
 
       - alert: NodeFilesystemHigh
-        expr: instance:node_filesystem_utilisation:ratio > 0.90
+        expr: instance:node_filesystem_utilisation:ratio > 0.85
         for: 10m
         labels:
           severity: warning
+
         annotations:
+          category: System
+
           summary: >
             Filesystem usage is high on {% raw %}{{ $labels.instance }}{% endraw %}
 
           description: >
-            Filesystem utilization has been above 90% for more than 10 minutes.
+            Filesystem utilization has been above 85% for more than 10 minutes.
 
-            Current value: {% raw %}{{ $value | humanizePercentage }}{% endraw %}
+          current_value: '{% raw %}{{ $value | humanizePercentage }}{% endraw %}'
+
+          dashboard: >
+            https://grafana.homelab.tech/d/rYdddlPWk/nodes
+
+          runbook: >
+            https://wiki.homelab.tech/runbooks/nodecpuhigh
+
+      - alert: NodeFilesystemHigh
+        expr: instance:node_filesystem_utilisation:ratio > 0.95
+        for: 10m
+        labels:
+          severity: critical
+
+        annotations:
+          category: System
+
+          summary: >
+            Filesystem usage is high on {% raw %}{{ $labels.instance }}{% endraw %}
+
+          description: >
+            Filesystem utilization has been above 95% for more than 10 minutes.
+
+          current_value: '{% raw %}{{ $value | humanizePercentage }}{% endraw %}'
+
+          dashboard: >
+            https://grafana.homelab.tech/d/rYdddlPWk/nodes
+
+          runbook: >
+            https://wiki.homelab.tech/runbooks/nodecpuhigh
 
       - alert: NodeFilesystemAlmostOutOfFiles
-        expr: instance:node_filesystem_inode_utilisation:ratio > 0.90
+        expr: instance:node_filesystem_inode_utilisation:ratio > 0.85
         for: 10m
         labels:
           severity: warning
+
         annotations:
+          category: System
+
           summary: >
             Filesystem inode usage is high on {% raw %}{{ $labels.instance }}{% endraw %}
 
           description: >
-            Filesystem inode utilization has been above 90% for more than 10 minutes.
+            Filesystem inode utilization has been above 85% for more than 10 minutes.
 
-            Current value: {% raw %}{{ $value | humanizePercentage }}{% endraw %}
+          current_value: '{% raw %}{{ $value | humanizePercentage }}{% endraw %}'
+
+          dashboard: >
+            https://grafana.homelab.tech/d/rYdddlPWk/nodes
+
+          runbook: >
+            https://wiki.homelab.tech/runbooks/nodecpuhigh
+
+      - alert: NodeFilesystemAlmostOutOfFiles
+        expr: instance:node_filesystem_inode_utilisation:ratio > 0.95
+        for: 10m
+        labels:
+          severity: critical
+
+        annotations:
+          category: System
+
+          summary: >
+            Filesystem inode usage is high on {% raw %}{{ $labels.instance }}{% endraw %}
+
+          description: >
+            Filesystem inode utilization has been above 95% for more than 10 minutes.
+
+          current_value: '{% raw %}{{ $value | humanizePercentage }}{% endraw %}'
+
+          dashboard: >
+            https://grafana.homelab.tech/d/rYdddlPWk/nodes
+
+          runbook: >
+            https://wiki.homelab.tech/runbooks/nodecpuhigh

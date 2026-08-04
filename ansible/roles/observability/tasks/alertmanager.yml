@@ -20,6 +20,7 @@
   loop:
     - /etc/alertmanager
     - /var/lib/alertmanager
+    - /etc/alertmanager/templates
 
 - name: Download Alertmanager
   ansible.builtin.get_url:
@@ -69,6 +70,15 @@
   notify:
     - Reload systemd
     - Restart Alertmanager
+
+- name: Copy Alertmanager Slack template
+  ansible.builtin.copy:
+    src: alertmanager/slack.tmpl
+    dest: /etc/alertmanager/templates/slack.tmpl
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart Alertmanager
 
 - name: Enable Alertmanager
   ansible.builtin.systemd:

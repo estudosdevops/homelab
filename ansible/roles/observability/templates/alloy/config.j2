@@ -3,6 +3,7 @@ logging {
 }
 
 prometheus.exporter.unix "node" {
+  disable_collectors = ["thermal_zone"]
 }
 
 discovery.relabel "node" {
@@ -34,5 +35,41 @@ prometheus.remote_write "prometheus" {
   }
   endpoint {
     url = "{{ prometheus.remote_write_url }}"
+  }
+}
+
+loki.source.journal "vm_logs" {
+  forward_to = [loki.relabel.vm_logs.receiver]
+}
+
+loki.relabel "vm_logs" {
+  forward_to = [loki.write.loki.receiver]
+
+  rule {
+    target_label = "node_name"
+    replacement  = constants.hostname
+  }
+
+  rule {
+    target_label = "instance"
+    replacement  = constants.hostname
+  }
+
+  rule {
+    target_label = "job"
+    replacement  = "linux/journal"
+  }
+}
+
+loki.write "loki" {
+  external_labels = {
+    cluster     = "homelab",
+    datacenter  = "home",
+    platform    = "proxmox",
+    environment = "homelab",
+  }
+
+  endpoint {
+    url = "{{ loki.write_url }}"
   }
 }

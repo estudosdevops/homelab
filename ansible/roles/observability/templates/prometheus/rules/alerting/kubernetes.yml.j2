@@ -1,0 +1,191 @@
+groups:
+  - name: Kubernetes
+    rules:
+      - alert: KubernetesNodeNotReady
+        expr: node:kube_ready:ratio == 0
+        for: 5m
+        labels:
+          severity: critical
+
+        annotations:
+          category: Kubernetes
+
+          summary: >
+            Kubernetes node {% raw %}{{ $labels.node }}{% endraw %} is NotReady
+
+          description: >
+            The node has been unavailable
+            for more than 5 minutes.
+
+          dashboard: >
+            https://grafana.homelab.tech/dashboards/f/aft3hu102lblse/kubernetes
+
+          runbook: >
+            https://wiki.homelab.tech/runbooks/node-not-ready
+
+      - alert: PodCrashLoopBackOff
+        expr: |
+          kube_pod_container_status_waiting_reason{
+            reason="CrashLoopBackOff"
+          } == 1
+        for: 5m
+
+        labels:
+          severity: warning
+
+        annotations:
+          category: Kubernetes
+
+          summary: >
+            Pod {% raw %}{{ $labels.namespace }}/{{ $labels.pod }}{% endraw %}
+            is CrashLoopBackOff
+
+          description: >
+            Pod has been restarting continuously
+            for more than 5 minutes.
+
+          current_value: >
+            {% raw %}{{ printf "%.0f" $value }}{% endraw %}
+
+          dashboard: >
+            https://grafana.homelab.tech/dashboards/f/aft3hu102lblse/kubernetes
+
+          runbook: >
+            https://wiki.homelab.tech/runbooks/pod-crashloop
+
+      - alert: DeploymentReplicasMismatch
+        expr: |
+          kube_deployment_status_replicas_available
+          <
+          kube_deployment_spec_replicas
+        for: 10m
+
+        labels:
+          severity: warning
+
+        annotations:
+          category: Kubernetes
+
+          summary: >
+            Deployment {% raw %}{{ $labels.namespace }}/{{ $labels.deployment }}{% endraw %}
+            has unavailable replicas
+
+          description: >
+            Available replicas are lower
+            than desired replicas.
+
+          current_value: >
+            {% raw %}{{ $value }}{% endraw %}
+
+          dashboard: >
+            https://grafana.homelab.tech/dashboards/f/aft3hu102lblse/kubernetes
+
+          runbook: >
+            https://wiki.homelab.tech/runbooks/deployment
+
+      - alert: StatefulSetReplicasMismatch
+        expr: |
+          kube_statefulset_status_replicas_ready
+          <
+          kube_statefulset_replicas
+        for: 10m
+
+        labels:
+          severity: warning
+
+        annotations:
+          category: Kubernetes
+
+          summary: >
+            StatefulSet {% raw %}{{ $labels.namespace }}/{{ $labels.statefulset }}{% endraw %}
+            has unavailable replicas
+          description: >
+            Ready replicas are lower
+            than desired replicas.
+
+          current_value: >
+            {% raw %}{{ $value }}{% endraw %}
+
+          dashboard: >
+            https://grafana.homelab.tech/dashboards/f/aft3hu102lblse/kubernetes
+
+          runbook: >
+            https://wiki.homelab.tech/runbooks/statefulset
+
+      - alert: KubernetesJobFailed
+        expr: kube_job_status_failed > 0
+        for: 5m
+
+        labels:
+          severity: warning
+
+        annotations:
+          category: Kubernetes
+
+          summary: >
+            Job {% raw %}{{ $labels.namespace }}/{{ $labels.job_name }}{% endraw %}
+            has failed
+
+          description: >
+            Kubernetes Job has failed.
+
+          current_value: >
+            {% raw %}{{ $value }}{% endraw %}
+
+          dashboard: >
+            https://grafana.homelab.tech/dashboards/f/aft3hu102lblse/kubernetes
+
+          runbook: >
+            https://wiki.homelab.tech/runbooks/jobs
+
+      - alert: PVCAlmostFull
+        expr: pvc:usage:ratio > 0.80
+        for: 10m
+
+        labels:
+          severity: warning
+
+        annotations:
+          category: Kubernetes
+
+          summary: >
+            PVC {% raw %}{{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }}{% endraw %}
+            is almost full
+
+          description: >
+            Persistent Volume usage is above 80%.
+
+          current_value: >
+            {% raw %}{{ $value | humanizePercentage }}{% endraw %}
+
+          dashboard: >
+            https://grafana.homelab.tech/dashboards/f/aft3hu102lblse/kubernetes
+
+          runbook: >
+            https://wiki.homelab.tech/runbooks/pvc
+
+      - alert: PVCFull
+        expr: pvc:usage:ratio > 0.90
+        for: 10m
+
+        labels:
+          severity: critical
+
+        annotations:
+          category: Kubernetes
+
+          summary: >
+            PVC {% raw %}{{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }}{% endraw %}
+            is almost full
+
+          description: >
+            Persistent Volume usage is above 90%.
+
+          current_value: >
+            {% raw %}{{ $value | humanizePercentage }}{% endraw %}
+
+          dashboard: >
+            https://grafana.homelab.tech/dashboards/f/aft3hu102lblse/kubernetes
+
+          runbook: >
+            https://wiki.homelab.tech/runbooks/pvc

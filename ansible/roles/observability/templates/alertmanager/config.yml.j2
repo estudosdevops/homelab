@@ -1,7 +1,9 @@
 global:
+  resolve_timeout: 5m
+  slack_api_url: {{ slack_api_url }}
 
 route:
-  receiver: default
+  receiver: slack
 
   group_by:
 {% for label in alertmanager.route.group_by %}
@@ -9,10 +11,21 @@ route:
 {% endfor %}
 
   group_wait: {{ alertmanager.route.group_wait }}
-
   group_interval: {{ alertmanager.route.group_interval }}
-
   repeat_interval: {{ alertmanager.route.repeat_interval }}
 
 receivers:
-  - name: default
+  - name: slack
+    slack_configs:
+      - channel: "#alerts"
+        username: Alertmanager
+        icon_emoji: ":rotating_light:"
+        send_resolved: true
+
+        # Mapeamento direto dos blocos do Go Template
+        title: '{{ "{{ template \"slack.title\" . }}" }}'
+        text: '{{ "{{ template \"slack.text\" . }}" }}'
+        color: '{{ "{{ template \"slack.color\" . }}" }}'
+
+templates:
+  - "/etc/alertmanager/templates/*.tmpl"

@@ -1,0 +1,58 @@
+{{/* ========================================================= */}}
+{{/* Title                                                     */}}
+{{/* ========================================================= */}}
+{{ define "slack.title" -}}
+  {{- if eq .Status "firing" -}}
+    {{- if eq .CommonLabels.severity "critical" }}🔴 Critical{{- else if eq .CommonLabels.severity "warning" }}🟡 Warning{{- else if eq .CommonLabels.severity "info" }}🔵 Info{{- else }}ALERT{{- end -}}
+  {{- else -}}
+    🟢 Resolved
+  {{- end -}}
+  {{- if .CommonAnnotations.category }} • {{ .CommonAnnotations.category | trimSpace }}{{- else if .CommonLabels.subsystem }} • {{ .CommonLabels.subsystem | toUpper | trimSpace }}{{- end -}}
+  {{- if .CommonLabels.alertname }} • {{ .CommonLabels.alertname | trimSpace }}{{- end -}}
+{{- end }}
+
+{{/* ========================================================= */}}
+{{/* Color                                                     */}}
+{{/* ========================================================= */}}
+{{ define "slack.color" -}}
+  {{- if eq .Status "resolved" -}}
+    good
+  {{- else if eq .CommonLabels.severity "critical" -}}
+    danger
+  {{- else if eq .CommonLabels.severity "warning" -}}
+    warning
+  {{- else -}}
+    #439FE0
+  {{- end -}}
+{{- end }}
+
+{{/* ========================================================= */}}
+{{/* Body                                                      */}}
+{{/* ========================================================= */}}
+{{ define "slack.text" -}}
+{{- range .Alerts }}
+*Summary:* {{ .Annotations.summary | trimSpace }}
+
+*Description:* {{ .Annotations.description | trimSpace }}
+
+```
+Host        : {{ .Labels.instance }}
+Cluster     : {{ .Labels.cluster }}
+Environment : {{ .Labels.environment }}
+Platform    : {{ .Labels.platform }}
+Datacenter  : {{ .Labels.datacenter }}
+```
+
+{{ if .Annotations.current_value -}}
+🔥 *Current Value...* `{{ .Annotations.current_value | trimSpace }}`
+{{ end -}}
+{{ if eq .Status "resolved" -}}
+⏱ *Duration.........* `{{ .EndsAt.Sub .StartsAt }}`
+{{ end -}}
+{{ if or .Annotations.dashboard .Annotations.runbook -}}
+{{ if .Annotations.dashboard -}}📊 <{{ .Annotations.dashboard | trimSpace }}|Grafana Dashboard>{{ end -}}
+{{ if and .Annotations.dashboard .Annotations.runbook }}  •  {{ end -}}
+{{ if .Annotations.runbook -}}📖 <{{ .Annotations.runbook | trimSpace }}|Runbook>{{ end }}
+{{ end -}}
+{{- end }}
+{{- end }}

@@ -28,3 +28,8 @@
   ansible.builtin.systemd:
     name: alertmanager
     state: restarted
+
+- name: Restart Loki
+  ansible.builtin.systemd:
+    name: loki
+    state: restarted

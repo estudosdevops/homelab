@@ -10,11 +10,27 @@ datasources:
     url: {{ ds.url }}
     isDefault: {{ ds.default | default(false) | lower }}
     editable: false
-
 {% if ds.type == "alertmanager" %}
     jsonData:
-      implementation: {{ ds.implementation }}
-      handleGrafanaManagedAlerts: {{ ds.handleGrafanaManagedAlerts | lower }}
+      implementation: "{{ ds.implementation | default('prometheus') }}"
+      handleGrafanaManagedAlerts: {{ ds.handleGrafanaManagedAlerts | default(false) | lower }}
+{% elif ds.type == "loki" %}
+    jsonData:
+      maxLines: {{ ds.maxLines | default(1000) }}
+{% if ds.derivedFields is defined %}
+      derivedFields:
+{% for field in ds.derivedFields %}
+        - name: "{{ field.name }}"
+          matcherType: "regex"
+          matcherRegex: '{{ field.matcherRegex }}'
+          datasourceUid: "{{ field.datasourceUid }}"
+          urlDisplayLabel: "{{ field.urlDisplayLabel | default('Ver Trace') }}"
+{% endfor %}
+{% endif %}
+{% elif ds.type == "prometheus" %}
+    jsonData:
+      timeInterval: "15s"
+      httpMethod: "POST"
 {% endif %}
 
 {% endfor %}

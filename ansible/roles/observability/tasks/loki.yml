@@ -1,0 +1,41 @@
+---
+- name: Configure Grafana repository
+  ansible.builtin.import_tasks: grafana_repo.yml
+
+- name: Install Loki
+  ansible.builtin.apt:
+    name: loki
+    state: present
+    update_cache: true
+
+- name: Create Loki directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: loki
+    group: root
+    mode: "0755"
+  loop:
+    - /etc/loki
+    - /var/lib/loki
+    - /var/lib/loki/chunks
+    - /var/lib/loki/index
+    - /var/lib/loki/index_cache
+    - /var/lib/loki/rules
+    - /var/lib/loki/rules-temp
+    - /var/lib/loki/compactor
+
+- name: Configure Loki
+  ansible.builtin.template:
+    src: loki/config.yml.j2
+    dest: /etc/loki/config.yml
+    owner: loki
+    group: root
+    mode: "0644"
+  notify: Restart Loki
+
+- name: Enable Loki
+  ansible.builtin.systemd:
+    name: loki
+    enabled: true
+    state: started
