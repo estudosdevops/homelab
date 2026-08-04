@@ -13,7 +13,7 @@ locals {
 
   vault_base = {
     cpu     = 4
-    memory  = 2048
+    memory  = 4096
     cores   = 2
     sockets = 1
 

@@ -1,0 +1,39 @@
+groups:
+  - name: kubernetes
+    rules:
+      - record: node:kube_ready:ratio
+        expr: |
+          max by (node) (
+            kube_node_status_condition{
+              condition="Ready",
+              status="true"
+            }
+          )
+
+      - record: pod:restart_rate5m
+        expr: |
+          rate(kube_pod_container_status_restarts_total[5m])
+
+      - record: namespace:cpu_usage:rate5m
+        expr: |
+          sum by (namespace)(
+            rate(container_cpu_usage_seconds_total{
+              container!="",
+              image!=""
+            }[5m])
+          )
+
+      - record: namespace:memory_usage
+        expr: |
+          sum by (namespace)(
+            container_memory_working_set_bytes{
+              container!="",
+              image!=""
+            }
+          )
+
+      - record: pvc:usage:ratio
+        expr: |
+          kubelet_volume_stats_used_bytes
+          /
+          kubelet_volume_stats_capacity_bytes

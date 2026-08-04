@@ -25,7 +25,7 @@
   ansible.builtin.template:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
-    owner: root
+    owner: "{{ pve_exporter.user }}"
     group: root
     mode: "{{ item.mode }}"
   loop: "{{ pve_exporter.templates }}"

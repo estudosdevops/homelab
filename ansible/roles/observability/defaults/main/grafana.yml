@@ -26,6 +26,27 @@ grafana:
       handleGrafanaManagedAlerts: false
       default: false
 
+    - name: Loki
+      uid: loki
+      type: loki
+      url: http://localhost:3100
+      default: false
+      maxLines: 1000
+      derivedFields:
+        - name: TraceID
+          matcherRegex: "(?:trace_id|traceID|traceid)=([a-zA-Z0-9]+)"
+          datasourceUid: tempo
+          urlDisplayLabel: "Ver Trace"
+
+    # - name: Tempo
+    #   uid: tempo
+    #   type: tempo
+    #   url: http://127.0.0.1:3200
+    #   default: false
+    #   tracesToLogs:
+    #     datasourceUid: loki
+    #     query: '{job="$${__service.name}"} |= "$${__trace.id}"'
+
   templates:
     - src: grafana/config.ini.j2
       dest: /etc/grafana/grafana.ini

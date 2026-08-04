@@ -47,4 +47,10 @@
 
     - src: prometheus/rules/alerting/system.yml.j2
       dest: /etc/prometheus/rules/alerting/system.yml
+
+    - src: prometheus/rules/recording/kubernetes.yml.j2
+      dest: /etc/prometheus/rules/recording/kubernetes.yml
+
+    - src: prometheus/rules/alerting/kubernetes.yml.j2
+      dest: /etc/prometheus/rules/alerting/kubernetes.yml
   notify: Restart Prometheus

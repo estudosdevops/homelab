@@ -1,6 +1,6 @@
 proxmox:
   host: "{{ pve_exporter.api.host }}"
-  port: "{{ pve_exporter.api.port }}"
+  port: {{ pve_exporter.api.port }}
 
   token_id: "{{ pve_exporter.api.token_id }}"
   token_secret: "{{ pve_exporter.api.token }}"
