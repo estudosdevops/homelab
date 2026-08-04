@@ -24,7 +24,7 @@
         host: "{{ ansible_host }}"
         port: 22
         state: stopped
-        timeout: 300
+        timeout: 600
         delay: 60
       delegate_to: localhost
       when: confirm.user_input | lower == 'yes'
