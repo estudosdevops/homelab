@@ -21,6 +21,9 @@ alloy:
         - name: host-sys
           hostPath:
             path: /sys
+        - name: host-var-log
+          hostPath:
+            path: /var/log
 
   alloy:
     extraEnv:
@@ -46,6 +49,9 @@ alloy:
         - name: host-sys
           mountPath: /host/sys
           readOnly: true
+        - name: host-var-log
+          mountPath: /var/log
+          readOnly: true
 
     configMap:
       content: |-
@@ -60,27 +66,26 @@ alloy:
           procfs_path = "/host/proc"
           sysfs_path  = "/host/sys"
           rootfs_path = "/host/root"
+
+          // Desativado para evitar logs de "no data available" no Loki
+          disable_collectors = ["thermal_zone", "hwmon"]
         }
 
         discovery.relabel "node" {
           targets = prometheus.exporter.unix.node.targets
 
-          // Força as labels 'node' e 'instance' a serem o nome do Node K8s
           rule {
             target_label = "node"
             replacement  = sys.env("NODE_NAME")
           }
-
           rule {
             target_label = "instance"
             replacement  = sys.env("NODE_NAME")
           }
-
           rule {
             target_label = "nodename"
             replacement  = sys.env("NODE_NAME")
           }
-
           rule {
             target_label = "job"
             replacement  = "linux/node"
@@ -100,7 +105,6 @@ alloy:
           targets = [{
             "__address__" = "kube-state-metrics.kube-system.svc.cluster.local:8080",
           }]
-
           rule {
             target_label = "job"
             replacement  = "kube-state-metrics"
@@ -120,17 +124,14 @@ alloy:
           targets = [{
             "__address__" = sys.env("NODE_IP") + ":10250",
           }]
-
           rule {
             target_label = "node"
             replacement  = sys.env("NODE_NAME")
           }
-
           rule {
             target_label = "instance"
             replacement  = sys.env("NODE_NAME")
           }
-
           rule {
             target_label = "job"
             replacement  = "cadvisor"
@@ -158,7 +159,6 @@ alloy:
           targets = [{
             "__address__" = "kubernetes.default.svc.cluster.local:443",
           }]
-
           rule {
             target_label = "job"
             replacement  = "apiserver"
@@ -178,7 +178,7 @@ alloy:
         }
 
         // -------------------------------------------------------------------
-        // 5. MÉTRICAS DO COREDNS (Descoberta Automática de Pods)
+        // 5. MÉTRICAS DO COREDNS
         // -------------------------------------------------------------------
         discovery.kubernetes "coredns_pods" {
           role = "pod"
@@ -189,13 +189,11 @@ alloy:
 
         discovery.relabel "coredns" {
           targets = discovery.kubernetes.coredns_pods.targets
-
           rule {
             source_labels = ["__meta_kubernetes_pod_container_port_number"]
             action        = "keep"
             regex         = "9153"
           }
-
           rule {
             target_label = "job"
             replacement  = "coredns"
@@ -209,7 +207,84 @@ alloy:
         }
 
         // -------------------------------------------------------------------
-        // DESTINO ÚNICO (VM DE OBSERVABILIDADE)
+        // 6. LOGS DOS PODS (Otimizado com Field Selectors)
+        // -------------------------------------------------------------------
+        discovery.kubernetes "pods" {
+          role = "pod"
+
+          // OTIMIZAÇÃO: Pede para a API do K8s enviar apenas os pods deste nó
+          selectors {
+            role  = "pod"
+            field = "spec.nodeName=" + sys.env("NODE_NAME")
+          }
+        }
+
+        discovery.relabel "pods" {
+          targets = discovery.kubernetes.pods.targets
+
+          rule {
+            source_labels = ["__meta_kubernetes_namespace"]
+            target_label  = "namespace"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_name"]
+            target_label  = "pod"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_container_name"]
+            target_label  = "container"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_node_name"]
+            target_label  = "node"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
+            target_label  = "app"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_label_app"]
+            target_label  = "app"
+          }
+          rule {
+            target_label = "cluster"
+            replacement  = sys.env("CLUSTER_NAME")
+          }
+          rule {
+            target_label = "platform"
+            replacement  = "kubernetes"
+          }
+          rule {
+            target_label = "environment"
+            replacement  = "production"
+          }
+          rule {
+            target_label = "job"
+            replacement  = "kubernetes/pods"
+          }
+        }
+
+        // Descobre e lê os arquivos físicos montados em /var/log/pods
+        loki.source.kubernetes "pods" {
+          targets    = discovery.relabel.pods.output
+          forward_to = [loki.process.cri.receiver]
+        }
+
+        // Processa o formato bruto do log (Containerd/Talos)
+        loki.process "cri" {
+          forward_to = [loki.write.loki.receiver]
+
+          stage.cri {}
+
+          stage.labels {
+            values = {
+              stream = "stream",
+            }
+          }
+        }
+
+        // -------------------------------------------------------------------
+        // 7. DESTINOS (VM DE OBSERVABILIDADE)
         // -------------------------------------------------------------------
         prometheus.remote_write "prometheus" {
           external_labels = {
@@ -218,8 +293,19 @@ alloy:
             platform    = "kubernetes",
             environment = "production",
           }
-
           endpoint {
             url = "http://192.168.20.21:9090/api/v1/write"
+          }
+        }
+
+        loki.write "loki" {
+          external_labels = {
+            cluster     = sys.env("CLUSTER_NAME"),
+            datacenter  = "home",
+            platform    = "kubernetes",
+            environment = "production",
+          }
+          endpoint {
+            url = "http://192.168.20.21:3100/loki/api/v1/push"
           }
         }

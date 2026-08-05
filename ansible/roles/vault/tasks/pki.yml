@@ -95,7 +95,8 @@
               allowed_domains: homelab.tech
               allow_subdomains: true
               allow_wildcard_certificates: false
-              max_ttl: 720h
+              ttl: 2160h
+              max_ttl: 2160h
               key_type: rsa
               key_bits: 4096
 

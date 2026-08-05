@@ -1,0 +1,28 @@
+server:
+  http_listen_port: {{ tempo.server.http_port }}
+  grpc_listen_port: {{ tempo.server.grpc_port }}
+  log_level: {{ tempo.log_level }}
+
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:{{ tempo.otlp.grpc_port }}
+        http:
+          endpoint: 0.0.0.0:{{ tempo.otlp.http_port }}
+
+storage:
+  trace:
+    backend: local
+
+    wal:
+      path:  /var/lib/tempo/wal
+
+    local:
+      path:  /var/lib/tempo/traces
+
+overrides:
+  defaults:
+    ingestion:
+      max_traces_per_user: 10000

@@ -1,0 +1,15 @@
+---
+tempo:
+  user: tempo
+
+  server:
+    http_port: 3200
+    grpc_port: 9095
+
+  otlp:
+    grpc_port: 4317
+    http_port: 4318
+
+  retention: 168h
+
+  log_level: info
