@@ -21,7 +21,6 @@ alloy:
         - name: host-sys
           hostPath:
             path: /sys
-        # OBRIGATÓRIO PARA LER OS LOGS FÍSICOS DOS PODS
         - name: host-var-log
           hostPath:
             path: /var/log
@@ -50,7 +49,6 @@ alloy:
         - name: host-sys
           mountPath: /host/sys
           readOnly: true
-        # OBRIGATÓRIO PARA LER OS LOGS FÍSICOS DOS PODS
         - name: host-var-log
           mountPath: /var/log
           readOnly: true
