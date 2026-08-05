@@ -33,3 +33,8 @@
   ansible.builtin.systemd:
     name: loki
     state: restarted
+
+- name: Restart Tempo
+  ansible.builtin.systemd:
+    name: tempo
+    state: restarted

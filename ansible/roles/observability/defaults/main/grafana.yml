@@ -38,14 +38,14 @@ grafana:
           datasourceUid: tempo
           urlDisplayLabel: "Ver Trace"
 
-    # - name: Tempo
-    #   uid: tempo
-    #   type: tempo
-    #   url: http://127.0.0.1:3200
-    #   default: false
-    #   tracesToLogs:
-    #     datasourceUid: loki
-    #     query: '{job="$${__service.name}"} |= "$${__trace.id}"'
+    - name: Tempo
+      uid: tempo
+      type: tempo
+      url: http://localhost:3200
+      default: false
+      tracesToLogs:
+        datasourceUid: loki
+        query: '{job="$${__service.name}"} |= "$${__trace.id}"'
 
   templates:
     - src: grafana/config.ini.j2

@@ -26,3 +26,7 @@
 - name: Install Loki
   ansible.builtin.import_tasks: loki.yml
   tags: loki
+
+- name: Install Tempo
+  ansible.builtin.import_tasks: tempo.yml
+  tags: tempo
