@@ -6,6 +6,7 @@ alloy:
       - key: node-role.kubernetes.io/control-plane
         operator: Exists
         effect: NoSchedule
+
       - key: node-role.kubernetes.io/master
         operator: Exists
         effect: NoSchedule
@@ -15,12 +16,15 @@ alloy:
         - name: host-root
           hostPath:
             path: /
+
         - name: host-proc
           hostPath:
             path: /proc
+
         - name: host-sys
           hostPath:
             path: /sys
+
         - name: host-var-log
           hostPath:
             path: /var/log
@@ -31,10 +35,12 @@ alloy:
         valueFrom:
           fieldRef:
             fieldPath: spec.nodeName
+
       - name: NODE_IP
         valueFrom:
           fieldRef:
             fieldPath: status.hostIP
+
       - name: CLUSTER_NAME
         value: homelab-prod
 
@@ -43,12 +49,15 @@ alloy:
         - name: host-root
           mountPath: /host/root
           readOnly: true
+
         - name: host-proc
           mountPath: /host/proc
           readOnly: true
+
         - name: host-sys
           mountPath: /host/sys
           readOnly: true
+
         - name: host-var-log
           mountPath: /var/log
           readOnly: true
@@ -59,16 +68,18 @@ alloy:
           level = "info"
         }
 
-        // -------------------------------------------------------------------
+        // ===================================================================
         // 1. MÉTRICAS DO NODE (TALOS OS / HARDWARE)
-        // -------------------------------------------------------------------
+        // ===================================================================
         prometheus.exporter.unix "node" {
           procfs_path = "/host/proc"
           sysfs_path  = "/host/sys"
           rootfs_path = "/host/root"
 
-          // Desativado para evitar logs de "no data available" no Loki
-          disable_collectors = ["thermal_zone", "hwmon"]
+          disable_collectors = [
+            "thermal_zone",
+            "hwmon",
+          ]
         }
 
         discovery.relabel "node" {
@@ -78,14 +89,17 @@ alloy:
             target_label = "node"
             replacement  = sys.env("NODE_NAME")
           }
+
           rule {
             target_label = "instance"
             replacement  = sys.env("NODE_NAME")
           }
+
           rule {
             target_label = "nodename"
             replacement  = sys.env("NODE_NAME")
           }
+
           rule {
             target_label = "job"
             replacement  = "linux/node"
@@ -98,13 +112,14 @@ alloy:
           forward_to      = [prometheus.remote_write.prometheus.receiver]
         }
 
-        // -------------------------------------------------------------------
+        // ===================================================================
         // 2. MÉTRICAS DO CLUSTER (KUBE-STATE-METRICS)
-        // -------------------------------------------------------------------
+        // ===================================================================
         discovery.relabel "kube_state_metrics" {
           targets = [{
             "__address__" = "kube-state-metrics.kube-system.svc.cluster.local:8080",
           }]
+
           rule {
             target_label = "job"
             replacement  = "kube-state-metrics"
@@ -117,21 +132,24 @@ alloy:
           forward_to      = [prometheus.remote_write.prometheus.receiver]
         }
 
-        // -------------------------------------------------------------------
-        // 3. MÉTRICAS DOS CONTÊINERES (cAdvisor NATIVO DO KUBELET DO TALOS)
-        // -------------------------------------------------------------------
+        // ===================================================================
+        // 3. MÉTRICAS DOS CONTÊINERES (cAdvisor / KUBELET / TALOS)
+        // ===================================================================
         discovery.relabel "cadvisor" {
           targets = [{
             "__address__" = sys.env("NODE_IP") + ":10250",
           }]
+
           rule {
             target_label = "node"
             replacement  = sys.env("NODE_NAME")
           }
+
           rule {
             target_label = "instance"
             replacement  = sys.env("NODE_NAME")
           }
+
           rule {
             target_label = "job"
             replacement  = "cadvisor"
@@ -146,19 +164,24 @@ alloy:
           tls_config {
             insecure_skip_verify = true
           }
+
           bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
 
           scrape_interval = "30s"
-          forward_to      = [prometheus.remote_write.prometheus.receiver]
+
+          forward_to = [
+            prometheus.remote_write.prometheus.receiver,
+          ]
         }
 
-        // -------------------------------------------------------------------
+        // ===================================================================
         // 4. MÉTRICAS DO KUBERNETES API SERVER
-        // -------------------------------------------------------------------
+        // ===================================================================
         discovery.relabel "apiserver" {
           targets = [{
             "__address__" = "kubernetes.default.svc.cluster.local:443",
           }]
+
           rule {
             target_label = "job"
             replacement  = "apiserver"
@@ -168,20 +191,26 @@ alloy:
         prometheus.scrape "apiserver" {
           targets      = discovery.relabel.apiserver.output
           scheme       = "https"
+
           tls_config {
             insecure_skip_verify = true
           }
+
           bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
 
           scrape_interval = "30s"
-          forward_to      = [prometheus.remote_write.prometheus.receiver]
+
+          forward_to = [
+            prometheus.remote_write.prometheus.receiver,
+          ]
         }
 
-        // -------------------------------------------------------------------
+        // ===================================================================
         // 5. MÉTRICAS DO COREDNS
-        // -------------------------------------------------------------------
+        // ===================================================================
         discovery.kubernetes "coredns_pods" {
           role = "pod"
+
           namespaces {
             names = ["kube-system"]
           }
@@ -189,11 +218,16 @@ alloy:
 
         discovery.relabel "coredns" {
           targets = discovery.kubernetes.coredns_pods.targets
+
           rule {
-            source_labels = ["__meta_kubernetes_pod_container_port_number"]
-            action        = "keep"
-            regex         = "9153"
+            source_labels = [
+              "__meta_kubernetes_pod_container_port_number",
+            ]
+
+            action = "keep"
+            regex  = "9153"
           }
+
           rule {
             target_label = "job"
             replacement  = "coredns"
@@ -203,16 +237,18 @@ alloy:
         prometheus.scrape "coredns" {
           targets         = discovery.relabel.coredns.output
           scrape_interval = "30s"
-          forward_to      = [prometheus.remote_write.prometheus.receiver]
+
+          forward_to = [
+            prometheus.remote_write.prometheus.receiver,
+          ]
         }
 
-        // -------------------------------------------------------------------
-        // 6. LOGS DOS PODS (Otimizado com Field Selectors)
-        // -------------------------------------------------------------------
+        // ===================================================================
+        // 6. LOGS DOS PODS
+        // ===================================================================
         discovery.kubernetes "pods" {
           role = "pod"
 
-          // OTIMIZAÇÃO: Pede para a API do K8s enviar apenas os pods deste nó
           selectors {
             role  = "pod"
             field = "spec.nodeName=" + sys.env("NODE_NAME")
@@ -226,53 +262,71 @@ alloy:
             source_labels = ["__meta_kubernetes_namespace"]
             target_label  = "namespace"
           }
+
           rule {
             source_labels = ["__meta_kubernetes_pod_name"]
             target_label  = "pod"
           }
+
           rule {
             source_labels = ["__meta_kubernetes_pod_container_name"]
             target_label  = "container"
           }
+
           rule {
             source_labels = ["__meta_kubernetes_pod_node_name"]
             target_label  = "node"
           }
+
           rule {
-            source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
-            target_label  = "app"
+            source_labels = [
+              "__meta_kubernetes_pod_label_app_kubernetes_io_name",
+            ]
+
+            target_label = "app"
           }
+
           rule {
-            source_labels = ["__meta_kubernetes_pod_label_app"]
-            target_label  = "app"
+            source_labels = [
+              "__meta_kubernetes_pod_label_app",
+            ]
+
+            target_label = "app"
           }
+
           rule {
             target_label = "cluster"
             replacement  = sys.env("CLUSTER_NAME")
           }
+
           rule {
             target_label = "platform"
             replacement  = "kubernetes"
           }
+
           rule {
             target_label = "environment"
             replacement  = "production"
           }
+
           rule {
             target_label = "job"
             replacement  = "kubernetes/pods"
           }
         }
 
-        // Descobre e lê os arquivos físicos montados em /var/log/pods
         loki.source.kubernetes "pods" {
-          targets    = discovery.relabel.pods.output
-          forward_to = [loki.process.cri.receiver]
+          targets = discovery.relabel.pods.output
+
+          forward_to = [
+            loki.process.cri.receiver,
+          ]
         }
 
-        // Processa o formato bruto do log (Containerd/Talos)
         loki.process "cri" {
-          forward_to = [loki.write.loki.receiver]
+          forward_to = [
+            loki.write.loki.receiver,
+          ]
 
           stage.cri {}
 
@@ -283,9 +337,77 @@ alloy:
           }
         }
 
-        // -------------------------------------------------------------------
-        // 7. DESTINOS (VM DE OBSERVABILIDADE)
-        // -------------------------------------------------------------------
+        // ===================================================================
+        // 7. OTLP RECEIVER
+        // ===================================================================
+        otelcol.receiver.otlp "applications" {
+          grpc {
+            endpoint = "0.0.0.0:4317"
+          }
+
+          http {
+            endpoint = "0.0.0.0:4318"
+          }
+
+          output {
+            metrics = [
+              otelcol.processor.batch.application_metrics.input,
+            ]
+
+            traces = [
+              otelcol.processor.batch.application_traces.input,
+            ]
+          }
+        }
+
+
+        // ===================================================================
+        // 8. BATCH - MÉTRICAS DAS APLICAÇÕES
+        // ===================================================================
+        otelcol.processor.batch "application_metrics" {
+          output {
+            metrics = [
+              otelcol.exporter.prometheus.application.input,
+            ]
+          }
+        }
+
+        // ===================================================================
+        // 9. OTLP METRICS → PROMETHEUS
+        // ===================================================================
+        otelcol.exporter.prometheus "application" {
+          forward_to = [
+            prometheus.remote_write.prometheus.receiver,
+          ]
+        }
+
+        // ===================================================================
+        // 10. BATCH - TRACES DAS APLICAÇÕES
+        // ===================================================================
+        otelcol.processor.batch "application_traces" {
+          output {
+            traces = [
+              otelcol.exporter.otlp.tempo.input,
+            ]
+          }
+        }
+
+        // ===================================================================
+        // 11. OTLP TRACES → TEMPO
+        // ===================================================================
+        otelcol.exporter.otlp "tempo" {
+          client {
+            endpoint = "192.168.20.21:4317"
+
+            tls {
+              insecure = true
+            }
+          }
+        }
+
+        // ===================================================================
+        // 12. PROMETHEUS REMOTE WRITE
+        // ===================================================================
         prometheus.remote_write "prometheus" {
           external_labels = {
             cluster     = sys.env("CLUSTER_NAME"),
@@ -293,11 +415,15 @@ alloy:
             platform    = "kubernetes",
             environment = "production",
           }
+
           endpoint {
             url = "http://192.168.20.21:9090/api/v1/write"
           }
         }
 
+        // ===================================================================
+        // 13. LOKI
+        // ===================================================================
         loki.write "loki" {
           external_labels = {
             cluster     = sys.env("CLUSTER_NAME"),
@@ -305,6 +431,7 @@ alloy:
             platform    = "kubernetes",
             environment = "production",
           }
+
           endpoint {
             url = "http://192.168.20.21:3100/loki/api/v1/push"
           }
