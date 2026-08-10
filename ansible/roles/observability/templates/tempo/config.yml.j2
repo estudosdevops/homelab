@@ -22,7 +22,21 @@ storage:
     local:
       path:  /var/lib/tempo/traces
 
+metrics_generator:
+  registry:
+    external_labels:
+      source: tempo
+      cluster: homelab-prod
+  storage:
+    path: /var/lib/tempo/generator/wal
+    remote_write:
+      - url: "{{ prometheus.remote_write_url }}"
+        send_exemplars: true
+
 overrides:
   defaults:
     ingestion:
       max_traces_per_user: 10000
+
+    metrics_generator:
+      processors: [service-graphs, span-metrics]

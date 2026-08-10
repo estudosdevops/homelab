@@ -2,7 +2,7 @@ apiVersion: 1
 prune: true
 
 datasources:
-{%- for ds in grafana.datasources %}
+{% for ds in grafana.datasources %}
   - name: {{ ds.name }}
     uid: {{ ds.uid }}
     type: {{ ds.type }}
@@ -10,39 +10,46 @@ datasources:
     url: {{ ds.url }}
     isDefault: {{ ds.default | default(false) | lower }}
     editable: false
-    {%- if ds.type == "alertmanager" %}
+{% if ds.type == "alertmanager" %}
     jsonData:
       implementation: "{{ ds.implementation | default('prometheus') }}"
       handleGrafanaManagedAlerts: {{ ds.handleGrafanaManagedAlerts | default(false) | lower }}
-    {%- elif ds.type == "loki" %}
+{% elif ds.type == "loki" %}
     jsonData:
       maxLines: {{ ds.maxLines | default(1000) }}
-      {%- if ds.derivedFields is defined %}
+{% if ds.derivedFields is defined %}
       derivedFields:
-        {%- for field in ds.derivedFields %}
+{% for field in ds.derivedFields %}
         - name: "{{ field.name }}"
           matcherType: "regex"
           matcherRegex: '{{ field.matcherRegex }}'
           datasourceUid: "{{ field.datasourceUid }}"
           urlDisplayLabel: "{{ field.urlDisplayLabel | default('Ver Trace') }}"
-        {%- endfor %}
-      {%- endif %}
-    {%- elif ds.type == "prometheus" %}
+{% endfor %}
+{% endif %}
+{% elif ds.type == "prometheus" %}
     jsonData:
       timeInterval: "15s"
       httpMethod: "POST"
-    {%- elif ds.type == "tempo" %}
+{% if ds.exemplarTraceIdDestinations is defined %}
+      exemplarTraceIdDestinations:
+{% for dest in ds.exemplarTraceIdDestinations %}
+        - datasourceUid: "{{ dest.datasourceUid }}"
+          name: "{{ dest.name | default('trace_id') }}"
+{% endfor %}
+{% endif %}
+{% elif ds.type == "tempo" %}
     jsonData:
       httpMethod: "GET"
-      {%- if ds.serviceMap is defined %}
+{% if ds.serviceMap is defined %}
       serviceMap:
         datasourceUid: "{{ ds.serviceMap.datasourceUid }}"
-      {%- endif %}
-      {%- if ds.tracesToLogs is defined %}
+{% endif %}
+{% if ds.tracesToLogs is defined %}
       tracesToLogsV2:
         datasourceUid: "{{ ds.tracesToLogs.datasourceUid }}"
         filterByTraceID: {{ ds.tracesToLogs.filterByTraceID | default(true) | lower }}
         filterBySpanID: {{ ds.tracesToLogs.filterBySpanID | default(false) | lower }}
-      {%- endif %}
-    {%- endif %}
-{%- endfor %}
+{% endif %}
+{% endif %}
+{% endfor %}
