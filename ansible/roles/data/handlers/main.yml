@@ -1,0 +1,10 @@
+---
+- name: Restart PostgreSQL
+  ansible.builtin.systemd:
+    name: postgresql
+    state: restarted
+
+- name: Restart Redis
+  ansible.builtin.systemd:
+    name: redis-server
+    state: restarted

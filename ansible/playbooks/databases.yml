@@ -1,0 +1,8 @@
+---
+- name: Configure Databases
+  hosts: databases
+  gather_facts: false
+  become: true
+
+  roles:
+    - role: data

@@ -1,0 +1,8 @@
+---
+- name: Include PostgreSQL
+  ansible.builtin.import_tasks: postgres.yml
+  tags: postgres
+
+- name: Include Redis
+  ansible.builtin.import_tasks: redis.yml
+  tags: redis

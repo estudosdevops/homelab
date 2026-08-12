@@ -1,0 +1,6 @@
+---
+redis:
+  server:
+    port: 6379
+    bind_address: "0.0.0.0"
+    protected_mode: "no"

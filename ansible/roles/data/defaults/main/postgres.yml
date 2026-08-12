@@ -1,0 +1,12 @@
+---
+postgresql:
+  version: "16"
+  user: "postgres"
+  server:
+    port: 5432
+    listen_addresses: "*"
+    allowed_subnet: "192.168.20.0/24"
+  databases:
+    - name: "sample-api"
+      user: "sample-api"
+      password: "sample@api"
