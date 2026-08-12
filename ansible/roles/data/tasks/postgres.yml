@@ -1,0 +1,64 @@
+---
+- name: Install PostgreSQL packages and Python dependencies
+  ansible.builtin.apt:
+    name:
+      - "postgresql-{{ postgresql.version }}"
+      - postgresql-contrib
+      - python3-psycopg2
+      - acl
+    state: present
+    update_cache: yes
+
+- name: Ensure PostgreSQL service is started and enabled
+  ansible.builtin.systemd:
+    name: postgresql
+    state: started
+    enabled: yes
+
+- name: Configure PostgreSQL listen_addresses
+  ansible.builtin.lineinfile:
+    path: "/etc/postgresql/{{ postgresql.version }}/main/postgresql.conf"
+    regexp: "^#?listen_addresses\\s*="
+    line: "listen_addresses = '{{ postgresql.server.listen_addresses }}'"
+  notify: Restart PostgreSQL
+
+- name: Allow subnet connections in pg_hba.conf
+  ansible.builtin.lineinfile:
+    path: "/etc/postgresql/{{ postgresql.version }}/main/pg_hba.conf"
+    line: "host    all             all             {{ postgresql.server.allowed_subnet }}            scram-sha-256"
+  notify: Restart PostgreSQL
+
+- name: Create application databases
+  become: true
+  become_user: "{{ postgresql.user }}"
+  community.postgresql.postgresql_db:
+    name: "{{ item.name }}"
+    state: present
+  loop: "{{ postgresql.databases }}"
+
+- name: Create application database users
+  become: true
+  become_user: "{{ postgresql.user }}"
+  community.postgresql.postgresql_user:
+    db: "{{ item.name }}"
+    name: "{{ item.user }}"
+    password: "{{ item.password }}"
+    state: present
+  loop: "{{ postgresql.databases }}"
+
+- name: Create addresses table in application databases
+  become: true
+  become_user: "{{ postgresql.user }}"
+  community.postgresql.postgresql_query:
+    db: "{{ item.name }}"
+    query: |
+      CREATE TABLE IF NOT EXISTS addresses (
+        cep TEXT PRIMARY KEY,
+        street TEXT NOT NULL,
+        city TEXT NOT NULL,
+        state TEXT NOT NULL
+      );
+      ALTER TABLE addresses OWNER TO "{{ item.user }}";
+      GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO "{{ item.user }}";
+      GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO "{{ item.user }}";
+  loop: "{{ postgresql.databases }}"
