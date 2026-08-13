@@ -1,5 +1,11 @@
 ---
 beyla:
+  env:
+    - name: BEYLA_EBPF_TRACK_PROCESSES
+      value: "false"
+    - name: BEYLA_KUBE_CLUSTER_NAME
+      value: "homelab-talos"
+
   config:
     data:
       otel_metrics_export:
@@ -10,7 +16,6 @@ beyla:
       attributes:
         kubernetes:
           enable: true
-          cluster_name: "homelab-prod"
 
       discovery:
         services:
@@ -38,12 +43,6 @@ beyla:
     - name: sys-kernel-btf
       hostPath:
         path: /sys/kernel/btf
-
-  securityContext:
-    privileged: true
-    runAsUser: 0
-  hostNetwork: true
-  hostPID: true
 
   tolerations:
     - effect: NoSchedule
