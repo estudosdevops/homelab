@@ -1,10 +1,8 @@
 ---
 beyla:
   env:
-    - name: BEYLA_EBPF_TRACK_PROCESSES
-      value: "false"
-    - name: BEYLA_KUBE_CLUSTER_NAME
-      value: "homelab-talos"
+    BEYLA_EBPF_TRACK_PROCESSES: "false"
+    BEYLA_KUBE_CLUSTER_NAME: "homelab-prod"
 
   config:
     data:
