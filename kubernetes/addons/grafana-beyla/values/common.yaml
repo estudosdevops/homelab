@@ -2,6 +2,10 @@
 beyla:
   config:
     data:
+      ebpf:
+        track_processes: false
+        bpf_fs_path: "/sys/fs/bpf"
+
       otel_metrics_export:
         endpoint: "http://grafana-alloy.grafana-alloy.svc.cluster.local:4317"
       otel_traces_export:
