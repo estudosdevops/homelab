@@ -24,10 +24,8 @@ beyla:
 
   # 4. Aponta para o BTF nativo do Talos e desativa kprobes via env
   env:
-    - name: BEYLA_DISCOVERY_SKIP_KPROBES
-      value: "true"
-    - name: BEYLA_EBPF_BTF_PATH
-      value: "/sys/kernel/btf/vmlinux"
+    BEYLA_DISCOVERY_SKIP_KPROBES: "true"
+    BEYLA_EBPF_BTF_PATH: "/sys/kernel/btf/vmlinux"
 
   # 5. Montagens dos volumes do Kernel no Talos
   volumeMounts:
