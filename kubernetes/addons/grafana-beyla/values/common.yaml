@@ -16,10 +16,10 @@ beyla:
   config:
     data:
       otel_metrics_export:
-        endpoint: "http://cluster.local"
+        endpoint: "http://grafana-alloy.grafana-alloy.svc.cluster.local:4317"
 
       otel_traces_export:
-        endpoint: "http://cluster.local"
+        endpoint: "http://grafana-alloy.grafana-alloy.svc.cluster.local:4317"
 
       attributes:
         kubernetes:
