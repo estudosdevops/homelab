@@ -1,25 +1,35 @@
----
 beyla:
-  env:
-    BEYLA_EBPF_TRACK_PROCESSES: "false"
-    BEYLA_KUBE_CLUSTER_NAME: "homelab-prod"
-
   config:
     data:
+      # 1. Exportação OTLP gRPC para o Alloy
       otel_metrics_export:
         endpoint: "http://grafana-alloy.grafana-alloy.svc.cluster.local:4317"
       otel_traces_export:
         endpoint: "http://grafana-alloy.grafana-alloy.svc.cluster.local:4317"
 
+      # 2. Metadados do Kubernetes
       attributes:
         kubernetes:
           enable: true
+          cluster_name: "homelab"
 
+      # 3. Descoberta via Polling (pula as kprobes legadas do kernel no Talos)
       discovery:
-        services:
+        skip_kprobes: true
+        poll_interval: 5s
+        # Nova sintaxe sem o aviso de deprecation:
+        instrument:
           - name: sample-api
             open_ports: 8080
 
+  # 4. Aponta para o BTF nativo do Talos e desativa kprobes via env
+  env:
+    - name: BEYLA_DISCOVERY_SKIP_KPROBES
+      value: "true"
+    - name: BEYLA_EBPF_BTF_PATH
+      value: "/sys/kernel/btf/vmlinux"
+
+  # 5. Montagens dos volumes do Kernel no Talos
   volumeMounts:
     - name: sys-fs-bpf
       mountPath: /sys/fs/bpf
@@ -39,6 +49,9 @@ beyla:
     - name: sys-kernel-btf
       hostPath:
         path: /sys/kernel/btf
+
+  securityContext:
+    privileged: true
 
   tolerations:
     - effect: NoSchedule
