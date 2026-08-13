@@ -1,0 +1,10 @@
+apiVersion: v2
+name: beyla
+description: A Helm chart for Kubernetes Grafana Beyla
+type: application
+version: 0.1.0
+
+dependencies:
+  - name: beyla
+    version: 1.16.10
+    repository: https://grafana.github.io/helm-charts
