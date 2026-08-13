@@ -14,35 +14,10 @@ beyla:
 
       discovery:
         instrument:
-          - name: sample-api
-            open_ports: 8080
+          - open_ports: 8080
 
   env:
     BEYLA_EBPF_BTF_PATH: "/sys/kernel/btf/vmlinux"
-
-  volumeMounts:
-    - name: sys-fs-bpf
-      mountPath: /sys/fs/bpf
-
-    - name: sys-kernel-debug
-      mountPath: /sys/kernel/debug
-
-    - name: sys-kernel-btf
-      mountPath: /sys/kernel/btf
-      readOnly: true
-
-  volumes:
-    - name: sys-fs-bpf
-      hostPath:
-        path: /sys/fs/bpf
-
-    - name: sys-kernel-debug
-      hostPath:
-        path: /sys/kernel/debug
-
-    - name: sys-kernel-btf
-      hostPath:
-        path: /sys/kernel/btf
 
   securityContext:
     privileged: true
