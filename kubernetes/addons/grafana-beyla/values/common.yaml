@@ -21,8 +21,6 @@ beyla:
         services:
           - name: sample-api
             open_ports: 8080
-            # Opcional: filtrar por namespace específico se preferir
-            # k8s_namespace: "default"
 
   volumeMounts:
     - name: sys-fs-bpf
