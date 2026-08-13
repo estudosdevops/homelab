@@ -39,6 +39,12 @@ beyla:
       hostPath:
         path: /sys/kernel/btf
 
+  securityContext:
+    privileged: true
+    runAsUser: 0
+  hostNetwork: true
+  hostPID: true
+
   tolerations:
     - effect: NoSchedule
       operator: Exists
