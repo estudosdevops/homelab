@@ -23,6 +23,20 @@ beyla:
             # Opcional: filtrar por namespace específico se preferir
             # k8s_namespace: "default"
 
+  volumeMounts:
+    - name: sys-fs-bpf
+      mountPath: /sys/fs/bpf
+    - name: sys-kernel-debug
+      mountPath: /sys/kernel/debug
+
+  volumes:
+    - name: sys-fs-bpf
+      hostPath:
+        path: /sys/fs/bpf
+    - name: sys-kernel-debug
+      hostPath:
+        path: /sys/kernel/debug
+
   tolerations:
     - effect: NoSchedule
       operator: Exists
