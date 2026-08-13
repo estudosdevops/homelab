@@ -3,13 +3,14 @@ beyla:
   config:
     data:
       otel_metrics_export:
-        endpoint: "grafana-alloy.grafana-alloy.svc.cluster.local:4317"
+        endpoint: "http://grafana-alloy.grafana-alloy.svc.cluster.local:4317"
       otel_traces_export:
-        endpoint: "grafana-alloy.grafana-alloy.svc.cluster.local:4317"
+        endpoint: "http://grafana-alloy.grafana-alloy.svc.cluster.local:4317"
 
       attributes:
         kubernetes:
           enable: true
+          cluster_name: "homelab-prod"
 
       discovery:
         services:
