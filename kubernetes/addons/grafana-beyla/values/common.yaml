@@ -2,10 +2,6 @@
 beyla:
   config:
     data:
-      ebpf:
-        track_processes: false
-        bpf_fs_path: "/sys/fs/bpf"
-
       otel_metrics_export:
         endpoint: "http://grafana-alloy.grafana-alloy.svc.cluster.local:4317"
       otel_traces_export:
@@ -28,6 +24,9 @@ beyla:
       mountPath: /sys/fs/bpf
     - name: sys-kernel-debug
       mountPath: /sys/kernel/debug
+    - name: sys-kernel-btf
+      mountPath: /sys/kernel/btf
+      readOnly: true
 
   volumes:
     - name: sys-fs-bpf
@@ -36,6 +35,9 @@ beyla:
     - name: sys-kernel-debug
       hostPath:
         path: /sys/kernel/debug
+    - name: sys-kernel-btf
+      hostPath:
+        path: /sys/kernel/btf
 
   tolerations:
     - effect: NoSchedule
