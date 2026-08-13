@@ -1,11 +1,25 @@
 beyla:
+  # Configurações globais do Pod do Beyla (aninhadas sob o wrapper)
+  hostPID: true # OBRIGATÓRIO: Permite ler os processos do nó do Talos
+  hostNetwork: true # OBRIGATÓRIO: Permite interceptar o tráfego de rede do nó
+
+  securityContext:
+    privileged: true # OBRIGATÓRIO: Permite carregar programas eBPF no Talos
+    capabilities:
+      add:
+        - SYS_ADMIN
+        - SYS_PTRACE
+        - BPF
+        - PERFMON
+
+  # Configuração interna do Beyla (o bloco que você já tinha)
   config:
     data:
       otel_metrics_export:
-        endpoint: "http://grafana-alloy.grafana-alloy.svc.cluster.local:4317"
+        endpoint: "http://cluster.local"
 
       otel_traces_export:
-        endpoint: "http://grafana-alloy.grafana-alloy.svc.cluster.local:4317"
+        endpoint: "http://cluster.local"
 
       attributes:
         kubernetes:
@@ -13,14 +27,11 @@ beyla:
           cluster_name: "homelab"
 
       discovery:
-        instrument:
+        services:
           - open_ports: 8080
 
   env:
     BEYLA_EBPF_BTF_PATH: "/sys/kernel/btf/vmlinux"
-
-  securityContext:
-    privileged: true
 
   tolerations:
     - effect: NoSchedule
