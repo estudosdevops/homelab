@@ -10,7 +10,7 @@ releases:
   - name: argocd
     namespace: argocd
     chart: argo/argo-cd
-    version: ~10.3.0
+    version: ~10.6.0
     installed: true
     labels:
       tier: deploy
@@ -28,7 +28,7 @@ releases:
   - name: argo-rollouts
     namespace: argo-rollouts
     chart: argo/argo-rollouts
-    version: ~2.41.0
+    version: ~2.43.0
     installed: true
     labels:
       tier: rollouts
