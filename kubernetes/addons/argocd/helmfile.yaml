@@ -10,7 +10,7 @@ releases:
   - name: argocd
     namespace: argocd
     chart: argo/argo-cd
-    version: ~10.6.0
+    version: ~10.8.0
     installed: true
     labels:
       tier: deploy
